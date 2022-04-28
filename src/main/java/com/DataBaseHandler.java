@@ -18,7 +18,7 @@ public class DataBaseHandler {
 	public static void openSQLFile(String nameFile) throws ClassNotFoundException, SQLException {
 		if(nameFile != null) { 
 			try {
-				String connection = "jdbc:sqlite:" + nameFile + ".db";
+				String connection = "jdbc:sqlite:" + nameFile;
 				dbConnection = getDBConnection(connection);
 			} catch(Exception e) {
 				System.out.println("File not found");

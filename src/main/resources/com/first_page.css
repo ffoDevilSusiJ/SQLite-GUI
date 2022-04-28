@@ -15,3 +15,11 @@
     -fx-border-color: -fx-text-box-border;
     -fx-border-width: 2;
 }
+
+ColumnConstraints{
+    -fx-background-color: #6b6b6b;  
+}
+
+.active_table{
+    -fx-text-fill: red;
+}

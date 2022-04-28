@@ -14,8 +14,11 @@ import javafx.scene.control.Label;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuItem;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.RowConstraints;
 import javafx.scene.layout.VBox;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
@@ -24,6 +27,7 @@ import java.io.File;
 import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 import java.awt.Desktop;
@@ -80,10 +84,9 @@ public class App extends Application {
         });
     }
     public void clearWorkSpace() {
-        VBox tables = (VBox) scene.lookup("#tables");
-        tables.getChildren().clear();
-        VBox items_row =  (VBox) scene.lookup("#tables_item");
-        items_row.getChildren().clear();
+        GridPane grid = (GridPane) scene.lookup("#items");
+        grid.getChildren().clear();
+        grid.getColumnConstraints().removeAll(grid.getColumnConstraints());
     }
     private void openFile(File file) {
         try {
@@ -92,11 +95,12 @@ public class App extends Application {
 
         }
     }
+
+    //List of tables on the right
     public void showTables() throws ClassNotFoundException, SQLException {
         VBox tables = (VBox) scene.lookup("#tables");
-        clearWorkSpace();
         ResultSet rs = db.getTablesSet();
-       
+        ArrayList<Label> tablesList = new ArrayList<Label>();
         while(rs.next()){
             if(!rs.getString(1).equals("sqlite_sequence")){
                 System.out.println(rs.getString(1));
@@ -104,10 +108,15 @@ public class App extends Application {
                 label.setId("table_id");
                 label.setPrefHeight(40);
                 label.setOnMouseClicked(new EventHandler<MouseEvent>() {
-
                     @Override
                     public void handle(MouseEvent arg0) {
                         try {
+                            for (Label item : tablesList) {
+                                if(item.getStyleClass().contains("active_table")){
+                                    item.getStyleClass().remove("active_table");
+                                }
+                            }
+                            label.getStyleClass().add("active_table");
                             showActiveTableItems(label.getText());
                         } catch (ClassNotFoundException | SQLException e) {
                             e.printStackTrace();
@@ -116,37 +125,47 @@ public class App extends Application {
                     
                 });
                 tables.setMargin(label, new Insets(0,15,0,0));
-                tables.getChildren().add(label);
+                tablesList.add(label);
+                
             }
         }
+        tables.getChildren().addAll(tablesList);
     }
+    
+    //Contents of the active table
     public void showActiveTableItems(String table) throws ClassNotFoundException, SQLException {
-        VBox items_row =  (VBox) scene.lookup("#tables_item");
-        HBox tables_name = new HBox();
-        items_row.getChildren().clear();
-        items_row.getChildren().add(tables_name);
         ResultSet rs = db.getTableItem(table);
+        GridPane grid = (GridPane) scene.lookup("#items");
+        grid.setPadding(new Insets(0,0,0,20));
+        
         int i = 1;
+        clearWorkSpace();
+        
+        System.out.println(grid.getColumnCount());
         while(rs.getMetaData().getColumnCount() >= i){
             
             Label label = new Label(rs.getMetaData().getColumnName(i));        
             label.setPrefHeight(40);
-            tables_name.setMargin(label, new Insets(0,15,0,15));
-            tables_name.getChildren().add(label);
+            grid.getColumnConstraints().add(new ColumnConstraints(80));
+            grid.add(label, i-1, 0);
             i++;
         }
         rs.close();
         rs = db.getTableItem(table);
+        i = 0;
+        int j = 1;
         while(rs.next()){
+            
             if(!rs.getString(1).equals("sqlite_sequence")){
-                HBox items_column = new HBox();
-                
-                items_column.setId("items_row");
-                Label label = new Label(rs.getString(2));        
-                label.setPrefHeight(40);
-                items_column.setMargin(label, new Insets(0,15,0,15));
-                items_column.getChildren().add(label);
-                items_row.getChildren().add(items_column);
+                i++;
+                for(int k = 0; k < rs.getMetaData().getColumnCount(); k++){
+                    Label label = new Label(rs.getString(k+1));
+                    grid.add(label, k, j);
+                    label.setPrefHeight(40);
+                }
+
+                grid.getRowConstraints().add(new RowConstraints(80));
+                j++;
             }
         }
         rs.close();

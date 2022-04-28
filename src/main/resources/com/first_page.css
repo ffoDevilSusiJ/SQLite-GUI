@@ -1,0 +1,17 @@
+
+.menu:hover{
+    -fx-background-color: #6b6b6b;  
+}
+.menu:showing{
+    -fx-background-color:  #1d1d1d;
+}
+
+#table_id{
+    -fx-margin: 30,0,0,0;
+}
+
+#items_row{
+    -fx-border-insets: 2 0 0 0;
+    -fx-border-color: -fx-text-box-border;
+    -fx-border-width: 2;
+}

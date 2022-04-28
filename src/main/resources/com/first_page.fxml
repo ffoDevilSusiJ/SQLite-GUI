@@ -3,8 +3,11 @@
 <?import javafx.scene.control.Menu?>
 <?import javafx.scene.control.MenuBar?>
 <?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 
 <VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" stylesheets="@first_page.css" xmlns="http://javafx.com/javafx/18" xmlns:fx="http://javafx.com/fxml/1">
@@ -13,7 +16,7 @@
         <menus>
           <Menu mnemonicParsing="false" text="File">
             <items>
-                  <MenuItem  fx:id="file_open" id="file_open" mnemonicParsing="false" text="Open" />
+                  <MenuItem id="file_open" fx:id="file_open" mnemonicParsing="false" text="Open" />
                   <MenuItem mnemonicParsing="false" text="Save" />
                   <MenuItem mnemonicParsing="false" text="Exit" />
             </items>
@@ -36,7 +39,12 @@
          <children>
             <Pane prefHeight="375.0" prefWidth="464.0">
                <children>
-                  <VBox fx:id="tables_item" />
+                  <GridPane id="items" fx:id="items" layoutX="-1.0" prefHeight="375.0" prefWidth="426.0">
+                    <columnConstraints>
+                    </columnConstraints>
+                    <rowConstraints>
+                    </rowConstraints>
+                  </GridPane>
                </children>
             </Pane>
             <Pane nodeOrientation="LEFT_TO_RIGHT" prefHeight="200.0" prefWidth="200.0">

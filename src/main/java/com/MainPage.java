@@ -58,7 +58,6 @@ public class MainPage {
                     try {
                         hideStartTipLabel();
                         DataBaseHandler.openSQLFile(file.toPath().toString().replace("\\", "//"));
-                        createGridPane();
                         Cleaner.newTableList();
                         showTables();
                     } catch (SQLException | ClassNotFoundException ex2) {
@@ -103,6 +102,7 @@ public class MainPage {
                                 }
                             }
                             label.getStyleClass().add("active_table");
+                            
                             showActiveTableItems(label.getText());
                         } catch (ClassNotFoundException | SQLException e) {
                             e.printStackTrace();
@@ -120,6 +120,7 @@ public class MainPage {
 
     // List of items from the active table
     public static void showActiveTableItems(String table) throws ClassNotFoundException, SQLException {
+        createGridPane();
         ResultSet rs = DataBaseHandler.getTableItem(table);
         GridPane grid = (GridPane) scene.lookup("#ListofItems");
         grid.setPadding(new Insets(0, 0, 0, 20));

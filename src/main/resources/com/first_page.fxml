@@ -3,59 +3,50 @@
 <?import javafx.scene.control.Menu?>
 <?import javafx.scene.control.MenuBar?>
 <?import javafx.scene.control.MenuItem?>
-<?import javafx.scene.layout.ColumnConstraints?>
-<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Pane?>
-<?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" stylesheets="@first_page.css" xmlns="http://javafx.com/javafx/18" xmlns:fx="http://javafx.com/fxml/1">
-   <children>
-      <MenuBar stylesheets="@first_page.css">
-        <menus>
-          <Menu mnemonicParsing="false" text="File">
-            <items>
-                  <MenuItem id="file_open" fx:id="file_open" mnemonicParsing="false" text="Open" />
-                  <MenuItem mnemonicParsing="false" text="Save" />
-                  <MenuItem mnemonicParsing="false" text="Exit" />
-            </items>
-          </Menu>
-          <Menu mnemonicParsing="false" text="Table">
-            <items>
-                  <MenuItem mnemonicParsing="false" text="Create Table" />
-              <MenuItem mnemonicParsing="false" text="Delete Table" />
-            </items>
-          </Menu>
-          <Menu mnemonicParsing="false" text="Item">
-            <items>
-              <MenuItem mnemonicParsing="false" text="New Item" />
-                  <MenuItem mnemonicParsing="false" text="Delete Item" />
-            </items>
-          </Menu>
-        </menus>
-      </MenuBar>
-      <HBox prefHeight="391.0" prefWidth="600.0">
+      <VBox xmlns="http://javafx.com/javafx/18" xmlns:fx="http://javafx.com/fxml/1" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" stylesheets="@first_page.css">
          <children>
-            <Pane prefHeight="375.0" prefWidth="464.0">
+            <MenuBar stylesheets="@first_page.css">
+              <menus>
+                <Menu mnemonicParsing="false" text="File">
+                  <items>
+                        <MenuItem id="file_open" fx:id="file_open" mnemonicParsing="false" text="Open" />
+                        <MenuItem mnemonicParsing="false" text="Save" />
+                        <MenuItem mnemonicParsing="false" text="Exit" />
+                  </items>
+                </Menu>
+                <Menu mnemonicParsing="false" text="Table">
+                  <items>
+                        <MenuItem mnemonicParsing="false" text="Create Table" />
+                    <MenuItem mnemonicParsing="false" text="Delete Table" />
+                  </items>
+                </Menu>
+                <Menu mnemonicParsing="false" text="Item">
+                  <items>
+                    <MenuItem mnemonicParsing="false" text="New Item" />
+                        <MenuItem mnemonicParsing="false" text="Delete Item" />
+                  </items>
+                </Menu>
+              </menus>
+            </MenuBar>
+            <HBox id="topBox" fx:id="topBox" prefHeight="391.0" prefWidth="600.0">
                <children>
-                  <GridPane id="items" fx:id="items" layoutX="-1.0" prefHeight="375.0" prefWidth="426.0">
-                    <columnConstraints>
-                    </columnConstraints>
-                    <rowConstraints>
-                    </rowConstraints>
-                  </GridPane>
-               </children>
-            </Pane>
-            <Pane nodeOrientation="LEFT_TO_RIGHT" prefHeight="200.0" prefWidth="200.0">
-               <children>
-                  <VBox id="tables" fx:id="tables" prefHeight="375.0" prefWidth="168.0">
+                  <VBox id="gridContainer" fx:id="gridContainer" prefHeight="375.0" prefWidth="464.0">
+               
+            </VBox>
+                  <Pane nodeOrientation="LEFT_TO_RIGHT" prefHeight="200.0" prefWidth="200.0">
                      <children>
+                        <VBox id="ListofTables" fx:id="ListofTables" prefHeight="375.0" prefWidth="168.0">
+                           <children>
                      </children>
-                  </VBox>
+                        </VBox>
+                     </children>
+                  </Pane>
                </children>
-            </Pane>
+            </HBox>
          </children>
-      </HBox>
-   </children>
-</VBox>
+      </VBox>

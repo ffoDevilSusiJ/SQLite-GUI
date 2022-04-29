@@ -9,17 +9,20 @@
 #table_id{
     -fx-margin: 30,0,0,0;
 }
-
-#items_row{
-    -fx-border-insets: 2 0 0 0;
-    -fx-border-color: -fx-text-box-border;
+.grid_style{
+    -fx-border-style: solid inside;
     -fx-border-width: 2;
+    -fx-border-insets: 5;
+    -fx-border-color: black;
 }
+#items_row{
 
-ColumnConstraints{
-    -fx-background-color: #6b6b6b;  
 }
 
 .active_table{
     -fx-text-fill: red;
+}
+
+.start_label{
+    -fx-text-fill: rgba(124, 124, 124, 0.63);
 }

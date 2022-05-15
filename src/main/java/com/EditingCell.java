@@ -1,22 +1,28 @@
 package com;
 
+import java.sql.SQLException;
 
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
 import javafx.scene.control.TableCell;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 
 public class EditingCell extends TableCell<ObservableList, String> {
     private TextField textField;
+    private static TableView view = MainPage.getTableView();
     String startValue = null;
+
     public EditingCell() {
     }
-    
-    @Override public void startEdit() {
+
+    @Override
+    public void startEdit() {
         startValue = this.getText();
         super.startEdit();
         if (textField == null) {
@@ -26,15 +32,17 @@ public class EditingCell extends TableCell<ObservableList, String> {
         setGraphic(textField);
         textField.selectAll();
     }
-    
-    @Override public void cancelEdit() {
+
+    @Override
+    public void cancelEdit() {
         super.cancelEdit();
         setText((String) getItem());
         setGraphic(null);
         System.out.println("Отмена");
     }
-    
-    @Override public void updateItem(String item, boolean empty) {
+
+    @Override
+    public void updateItem(String item, boolean empty) {
         super.updateItem(item, empty);
         if (empty) {
             setText(null);
@@ -52,7 +60,7 @@ public class EditingCell extends TableCell<ObservableList, String> {
             }
         }
     }
-    
+
     private void createTextField() {
         textField = new TextField(getString());
         textField.setMinWidth(this.getWidth() - this.getGraphicTextGap() * 2);
@@ -60,16 +68,41 @@ public class EditingCell extends TableCell<ObservableList, String> {
             @Override public void handle(KeyEvent t) {
                 if (t.getCode() == KeyCode.ENTER) {
                     commitEdit(textField.getText());
+
+                    String field = null;
+                    int row = 0;
+                    i:for(int i = 0; i < view.getColumns().size(); i++){
+                        for(int j = 0; j < MainPage.data.size(); j++){
+                            for(int k = 0; k < MainPage.row.size(); k++){
+                                if(MainPage.data.get(j).get(k).equals(startValue)){
+                                    field = ((TableColumn)(view.getColumns().get(k))).getText();
+                                    row = j+1;
+                                    System.out.println(field);
+                                    break i;
+                                }
+                        }
+                        }
+                    }
+
+                    try {
+                        DataBaseHandler.updateValue(MainPage.getCurrentTable(),field, row , textField.getText());
+                    } catch (SQLException e) {
+
+                        e.printStackTrace();
+                    }
+
+
                     for(int i = 0; i < MainPage.data.size(); i++){
                         //System.out.println(startValue);
                         for(int j = 0; j < MainPage.row.size(); j++)
                         {
                             if(MainPage.data.get(i).get(j).equals(startValue)){
-                                System.out.println(startValue);
+                                
                                 MainPage.data.get(i).set(j, textField.getText());
                             }
                         }
                     }
+
                 } else if (t.getCode() == KeyCode.ESCAPE) {
                     cancelEdit();
                 }
@@ -80,14 +113,15 @@ public class EditingCell extends TableCell<ObservableList, String> {
             @Override
             public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
                 if (!newValue) {
-
+                    
+                        
                         commitEdit(textField.getText());
                 }
             }
         });
     }
-    
+
     private String getString() {
         return getItem() == null ? "" : getItem().toString();
     }
-    } 
+}

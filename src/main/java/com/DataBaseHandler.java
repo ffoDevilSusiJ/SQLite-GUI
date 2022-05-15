@@ -2,6 +2,7 @@ package com;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
@@ -47,5 +48,14 @@ public class DataBaseHandler {
 			rs = statement.executeQuery(query);
 		//statement.close();
 		return rs;
+	}
+
+	public static void updateValue(String table, String field, int rowid, String value) throws SQLException{
+		String query = "UPDATE "+ table  +" SET " + field + " = ?" + " Where " + "rowid" + " = ?" + ";";
+		System.out.println(table +" "  + field + " " + rowid);
+		PreparedStatement statement = dbConnection.prepareStatement(query);
+		statement.setString(1, value);
+		statement.setInt(2, rowid);
+		statement.executeUpdate();
 	}
 }

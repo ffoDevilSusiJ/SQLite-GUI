@@ -4,8 +4,14 @@ import java.io.File;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.List;
 
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.value.ObservableValue;
+import javafx.collections.FXCollections;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
+import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
@@ -13,13 +19,20 @@ import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.TableCell;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
+import javafx.scene.control.cell.PropertyValueFactory;
+import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.RowConstraints;
 import javafx.scene.layout.VBox;
+import javafx.scene.shape.Line;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
+import javafx.util.Callback;
 
 public class MainPage {
     static Scene scene = App.getScene();
@@ -70,13 +83,13 @@ public class MainPage {
         });
     }
     //Create List of Items grid from active table
-    public static void createGridPane() {
+    public static void createTableView() {
         if (scene.lookup("#ListofItems") == null) {
+            
             VBox gridContainer = (VBox) scene.lookup("#gridContainer");
-            GridPane grid = new GridPane();
-            grid.setId("ListofItems");
-            grid.getStyleClass().add("grid_style");
-            gridContainer.getChildren().add(grid);
+            TableView table = new TableView();
+            table.setId("ListofItems");
+            gridContainer.getChildren().add(table);
         }
     }
 
@@ -88,7 +101,6 @@ public class MainPage {
         ArrayList<Label> tablesList = new ArrayList<Label>();
         while (rs.next()) {
             if (!rs.getString(1).equals("sqlite_sequence")) {
-                System.out.println(rs.getString(1));
                 Label label = new Label(rs.getString(1));
                 label.setId("table_id");
                 label.setPrefHeight(40);
@@ -102,8 +114,7 @@ public class MainPage {
                                 }
                             }
                             label.getStyleClass().add("active_table");
-                            
-                            showActiveTableItems(label.getText());
+                            buildData(label.getText());
                         } catch (ClassNotFoundException | SQLException e) {
                             e.printStackTrace();
                         }
@@ -119,44 +130,60 @@ public class MainPage {
     }
 
     // List of items from the active table
-    public static void showActiveTableItems(String table) throws ClassNotFoundException, SQLException {
-        createGridPane();
-        ResultSet rs = DataBaseHandler.getTableItem(table);
-        GridPane grid = (GridPane) scene.lookup("#ListofItems");
-        grid.setPadding(new Insets(0, 0, 0, 20));
-
-        int i = 1;
+    private static List<String> columnNames = new ArrayList<>();
+    public static ObservableList<String> row = null;
+    public static ObservableList<ObservableList> data = null;
+    private static void buildData(String table) throws SQLException, ClassNotFoundException {
         Cleaner.newItemList();
+        createTableView();
+        TableView view = (TableView) scene.lookup("#ListofItems");
+        data = FXCollections.observableArrayList();
+        ResultSet resultSet = DataBaseHandler.getTableItem(table);
+        for (int i = 0; i < resultSet.getMetaData().getColumnCount(); i++) {
 
-       
-        while (rs.getMetaData().getColumnCount() >= i) {
-
-            Label label = new Label(rs.getMetaData().getColumnName(i));
-            label.setPrefHeight(40);
-            grid.getColumnConstraints().add(new ColumnConstraints(80));
-            grid.add(label, i - 1, 0);
-            i++;
-        }
-        
-        rs.close();
-        rs = DataBaseHandler.getTableItem(table);
-        i = 0;
-        int j = 1;
-        while (rs.next()) {
-
-            if (!rs.getString(1).equals("sqlite_sequence")) {
-                i++;
-                for (int k = 0; k < rs.getMetaData().getColumnCount(); k++) {
-                    Label label = new Label(rs.getString(k + 1));
-                    grid.add(label, k, j);
-                    label.setPrefHeight(40);
+            final int j = i;
+            TableColumn col = new TableColumn(resultSet.getMetaData().getColumnName(i + 1));
+            
+            col.setCellValueFactory((Callback<TableColumn.CellDataFeatures<ObservableList, String>, ObservableValue<String>>) param -> {
+                if (param.getValue().get(j) != null) {
+                    return new SimpleStringProperty(param.getValue().get(j).toString());
+                } else {
+                    return null;
                 }
-
-                grid.getRowConstraints().add(new RowConstraints(80));
-                j++;
-            }
+                
+            });
+            col.setCellFactory(colomn -> {
+                TableCell<ObservableList, String> cell = new EditingCell();
+                return cell;
+            });
+            view.setEditable(true);
+            
+            
+            view.getColumns().addAll(col);
+            columnNames.add(col.getText());
+            
         }
-        rs.close();
+
+        while (resultSet.next()) {
+            //Iterate Row
+            row = FXCollections.observableArrayList();
+            for (int i = 1; i <= resultSet.getMetaData().getColumnCount(); i++) {
+                //Iterate Column
+                row.add(resultSet.getString(i));
+            }
+            data.add(row);
+
+        }
+
+        //FINALLY ADDED TO TableView
+        view.setItems(data);
     }
 
+    public List<String> getColumnNames() {
+        return columnNames;
+    }
 }
+
+
+
+

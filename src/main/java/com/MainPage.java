@@ -78,10 +78,13 @@ public class MainPage {
                 file = fileChooser.showOpenDialog(stage);
                 Path fileCopy = null;
                 try {
-                    Files.deleteIfExists(Paths.get("C:\\Windows\\TEMP\\items.db"));
-                    file_temp = new File("C:\\Windows\\TEMP\\items.db");
+                    if(DataBaseHandler.dbConnection != null){
+                        DataBaseHandler.dbConnection.close();
+                    }
+                    Files.deleteIfExists(Paths.get("C:\\Windows\\TEMP\\" + file.getName() + "_temp.db"));
+                    file_temp = new File("C:\\Windows\\TEMP\\" + file.getName() + "_temp.db");
                     fileCopy = Files.copy(file.toPath(), file_temp.toPath(), (CopyOption)StandardCopyOption.REPLACE_EXISTING);
-                } catch (IOException e1) {
+                } catch (IOException | SQLException e1) {
                     e1.printStackTrace();
                 }
                 
@@ -89,6 +92,7 @@ public class MainPage {
                     try {
                         hideStartTipLabel();
                         DataBaseHandler.openSQLFile(fileCopy.toString().replace("\\", "//"));
+                        
                         Cleaner.newTableList();
                         showTables();
                     } catch (SQLException | ClassNotFoundException ex2) {
@@ -100,6 +104,12 @@ public class MainPage {
 
         });
     }
+
+    public void SaveAction(){
+        
+    }
+
+
     //Create List of Items grid from active table
     public static void createTableView() {
         if (scene.lookup("#ListofItems") == null) {

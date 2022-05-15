@@ -14,6 +14,7 @@
     -fx-border-width: 2;
     -fx-border-insets: 5;
     -fx-border-color: black;
+    -fx-grid-lines-visible: true;
 }
 #items_row{
 

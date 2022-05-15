@@ -1,6 +1,12 @@
 package com;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.CopyOption;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -37,7 +43,7 @@ import javafx.util.Callback;
 public class MainPage {
     static Scene scene = App.getScene();
     static Stage stage = App.getStage();
-
+    static String currentTable = null;
 
     //show start tip label
     public static void showStartTipLabel() {
@@ -55,6 +61,8 @@ public class MainPage {
     }
 
     // File Chooser
+    static File file;
+    static File file_temp;
     public static void FilePicker(FXMLLoader fxmlLoader) {
 
         final FileChooser fileChooser = new FileChooser();
@@ -62,15 +70,25 @@ public class MainPage {
         MenuItem openMenuItem = (MenuItem) fxmlLoader.getNamespace().get("file_open");
         openMenuItem.setOnAction(new EventHandler<ActionEvent>() {
             public void handle(final ActionEvent e) {
+                
                 FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("DataBase Files (*.db)",
                         "*.db");
                 fileChooser.getExtensionFilters().add(extFilter);
-                File file = fileChooser.showOpenDialog(stage);
-                System.out.println();
+                
+                file = fileChooser.showOpenDialog(stage);
+                Path fileCopy = null;
+                try {
+                    Files.deleteIfExists(Paths.get("C:\\Windows\\TEMP\\items.db"));
+                    file_temp = new File("C:\\Windows\\TEMP\\items.db");
+                    fileCopy = Files.copy(file.toPath(), file_temp.toPath(), (CopyOption)StandardCopyOption.REPLACE_EXISTING);
+                } catch (IOException e1) {
+                    e1.printStackTrace();
+                }
+                
                 if (file != null) {
                     try {
                         hideStartTipLabel();
-                        DataBaseHandler.openSQLFile(file.toPath().toString().replace("\\", "//"));
+                        DataBaseHandler.openSQLFile(fileCopy.toString().replace("\\", "//"));
                         Cleaner.newTableList();
                         showTables();
                     } catch (SQLException | ClassNotFoundException ex2) {
@@ -107,17 +125,18 @@ public class MainPage {
                 label.setOnMouseClicked(new EventHandler<MouseEvent>() {
                     @Override
                     public void handle(MouseEvent arg0) {
-                        try {
                             for (Label item : tablesList) {
                                 if (item.getStyleClass().contains("active_table")) {
                                     item.getStyleClass().remove("active_table");
                                 }
                             }
                             label.getStyleClass().add("active_table");
-                            buildData(label.getText());
-                        } catch (ClassNotFoundException | SQLException e) {
-                            e.printStackTrace();
-                        }
+                            currentTable = label.getText();
+                            try {
+                                buildData(label.getText());
+                            } catch (ClassNotFoundException | SQLException e) {
+                                e.printStackTrace();
+                            }
                     }
 
                 });
@@ -133,6 +152,7 @@ public class MainPage {
     private static List<String> columnNames = new ArrayList<>();
     public static ObservableList<String> row = null;
     public static ObservableList<ObservableList> data = null;
+     
     private static void buildData(String table) throws SQLException, ClassNotFoundException {
         Cleaner.newItemList();
         createTableView();
@@ -166,13 +186,15 @@ public class MainPage {
 
         while (resultSet.next()) {
             //Iterate Row
+            int j = 1;
             row = FXCollections.observableArrayList();
             for (int i = 1; i <= resultSet.getMetaData().getColumnCount(); i++) {
                 //Iterate Column
                 row.add(resultSet.getString(i));
             }
+            row.add(Integer.toString(j));
             data.add(row);
-
+            j++;
         }
 
         //FINALLY ADDED TO TableView
@@ -181,6 +203,19 @@ public class MainPage {
 
     public List<String> getColumnNames() {
         return columnNames;
+    }
+
+    public static void refreshList(){
+
+    }
+
+    public static String getCurrentTable() {
+        return currentTable;
+    }
+
+    public static TableView getTableView(){
+        TableView view = (TableView) scene.lookup("#ListofItems");
+        return view;
     }
 }
 

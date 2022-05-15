@@ -30,6 +30,7 @@ public class App extends Application {
         AnchorPane.setRightAnchor((HBox)scene.lookup("#topBox"),10.0);
         System.out.println();
         MainPage.FilePicker(fxmlLoader);
+        
 
     }
 

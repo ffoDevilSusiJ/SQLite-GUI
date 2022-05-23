@@ -4,7 +4,10 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class DataBaseHandler {
 
@@ -56,6 +59,30 @@ public class DataBaseHandler {
 		PreparedStatement statement = dbConnection.prepareStatement(query);
 		statement.setString(1, value);
 		statement.setInt(2, rowid);
+		statement.executeUpdate();
+	}
+
+	public static void addItem(String table, List<String> fields) throws SQLException, ClassNotFoundException{
+		ResultSet rs = getTableItem(table);
+		String query = "INSERT INTO " + table + " VALUES ( ";
+		for (int i = 0; i < fields.size(); i++) {
+			if(i != fields.size() - 1)
+			query = query + "?" + ",";
+			else query = query + "?";
+		}
+		query = query + ");";
+		System.out.println(query);
+		PreparedStatement statement = dbConnection.prepareStatement(query);
+		System.out.println();
+		for (int i = 0; i < fields.size(); i++) {
+			if(rs.getMetaData().getColumnType((i + 1)) == java.sql.Types.INTEGER){
+				statement.setInt((i + 1), Integer.valueOf(fields.get(i)));
+			}
+			if(rs.getMetaData().getColumnType((i + 1)) == java.sql.Types.VARCHAR){
+				statement.setString((i + 1), fields.get(i));
+			}
+		}
+		
 		statement.executeUpdate();
 	}
 }

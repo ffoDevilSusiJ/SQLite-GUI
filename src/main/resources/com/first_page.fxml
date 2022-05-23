@@ -22,12 +22,12 @@
                 <Menu mnemonicParsing="false" text="Table">
                   <items>
                         <MenuItem mnemonicParsing="false" text="Create Table" />
-                    <MenuItem mnemonicParsing="false" text="Delete Table" />
+                        <MenuItem mnemonicParsing="false" text="Delete Table" />
                   </items>
                 </Menu>
                 <Menu mnemonicParsing="false" text="Item">
                   <items>
-                    <MenuItem mnemonicParsing="false" text="New Item" />
+                    <MenuItem id="item_add" fx:id="item_add"  mnemonicParsing="false" text="New Item" />
                         <MenuItem mnemonicParsing="false" text="Delete Item" />
                   </items>
                 </Menu>

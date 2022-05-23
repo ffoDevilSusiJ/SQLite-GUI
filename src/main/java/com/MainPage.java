@@ -11,13 +11,11 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
-
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
-import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
@@ -31,14 +29,8 @@ import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.Alert.AlertType;
-import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.control.cell.TextFieldTableCell;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.ColumnConstraints;
-import javafx.scene.layout.GridPane;
-import javafx.scene.layout.RowConstraints;
 import javafx.scene.layout.VBox;
-import javafx.scene.shape.Line;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.util.Callback;
@@ -64,6 +56,23 @@ public class MainPage {
         gridContainer.setAlignment(Pos.TOP_LEFT);
     }
 
+    //Add Item
+    public static void ItemAdder(FXMLLoader fxmlLoader){
+        MenuItem openMenuItem = (MenuItem) fxmlLoader.getNamespace().get("item_add");
+        openMenuItem.setOnAction(new EventHandler<ActionEvent>() {
+            public void handle(final ActionEvent e) {
+                AddItemDialog item_Dialog = new AddItemDialog();
+                try {
+                    item_Dialog.display();
+                } catch (ClassNotFoundException | SQLException | IOException e1) {
+                    e1.printStackTrace();
+                }
+            
+            }
+        });
+    }
+
+
     // File Chooser
     static File file;
     static File file_temp;
@@ -77,7 +86,7 @@ public class MainPage {
 
                 if (file_temp == null) {
                     openProcess();
-                } else {
+                } else { 
                     Alert alert = new Alert(AlertType.CONFIRMATION, "Do you want to save the changes?",
                             ButtonType.YES, ButtonType.NO, ButtonType.CANCEL);
                     alert.setTitle("Save before opening");
@@ -207,11 +216,12 @@ public class MainPage {
     }
 
     // List of items from the active table
-    private static List<String> columnNames = new ArrayList<>();
+    public static List<String> columnNames = new ArrayList<>();
     public static ObservableList<String> row = null;
-    public static ObservableList<ObservableList> data = null;
+    public static ObservableList<ObservableList<String>> data = null;
 
-    private static void buildData(String table) throws SQLException, ClassNotFoundException {
+    static void buildData(String table) throws SQLException, ClassNotFoundException {
+        columnNames.clear();
         Cleaner.newItemList();
         createTableView();
         TableView view = (TableView) scene.lookup("#ListofItems");

@@ -23,7 +23,7 @@ public class App extends Application {
     static Stage stage;
     private static Scene scene;
     static FXMLLoader fxmlLoader;
-
+    
     @Override
     public void start(Stage main_stage) throws IOException, ClassNotFoundException, SQLException {
         stage = main_stage;
@@ -52,6 +52,7 @@ public class App extends Application {
         AnchorPane.setRightAnchor((HBox) scene.lookup("#topBox"), 10.0);
         System.out.println();
         MainPage.FilePicker(fxmlLoader);
+        MainPage.ItemAdder(fxmlLoader);
         MainPage.SaveAction(fxmlLoader);
 
     }

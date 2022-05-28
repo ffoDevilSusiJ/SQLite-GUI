@@ -24,7 +24,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
-public class AddItemDialog implements ItemDialogs {
+public class AddItemDialog implements Dialogs {
     static Scene scene = null;
     static int finalWidth;
     static int finalHeight;
@@ -35,7 +35,7 @@ public class AddItemDialog implements ItemDialogs {
         finalHeight = 0;
         DataBaseHandler.getPrimaryKeys(MainPage.getCurrentTable());
         ArrayList<String> values = new ArrayList<String>();
-        scene = new Scene(ItemDialogs.loadFXML("add_item_dialog"), 0, 150);
+        scene = new Scene(Dialogs.loadFXML("add_item_dialog"), 0, 150);
         
         Stage stage = new Stage();
         

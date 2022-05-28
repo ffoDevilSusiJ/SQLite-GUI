@@ -23,7 +23,9 @@
 .active_table{
     -fx-text-fill: red;
 }
-
+.error{
+    -fx-text-fill: rgb(146, 0, 0);
+}
 .start_label{
     -fx-text-fill: rgba(124, 124, 124, 0.63);
 }

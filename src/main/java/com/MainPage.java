@@ -11,6 +11,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.dbase.DataBaseHandler;
+import com.dialogs.AddItemDialog;
+
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
@@ -56,8 +60,8 @@ public class MainPage {
         gridContainer.setAlignment(Pos.TOP_LEFT);
     }
 
-    //Add Item
-    public static void ItemAdder(FXMLLoader fxmlLoader){
+    // Add Item
+    public static void ItemAdder(FXMLLoader fxmlLoader) {
         MenuItem openMenuItem = (MenuItem) fxmlLoader.getNamespace().get("item_add");
         openMenuItem.setOnAction(new EventHandler<ActionEvent>() {
             public void handle(final ActionEvent e) {
@@ -67,17 +71,17 @@ public class MainPage {
                 } catch (ClassNotFoundException | SQLException | IOException e1) {
                     e1.printStackTrace();
                 }
-            
+
             }
         });
     }
-
 
     // File Chooser
     static File file;
     static File file_temp;
     static String filePath;
     static Path fileCopy = null;
+
     public static void FilePicker(FXMLLoader fxmlLoader) {
 
         MenuItem openMenuItem = (MenuItem) fxmlLoader.getNamespace().get("file_open");
@@ -86,7 +90,7 @@ public class MainPage {
 
                 if (file_temp == null) {
                     openProcess();
-                } else { 
+                } else {
                     Alert alert = new Alert(AlertType.CONFIRMATION, "Do you want to save the changes?",
                             ButtonType.YES, ButtonType.NO, ButtonType.CANCEL);
                     alert.setTitle("Save before opening");
@@ -110,7 +114,7 @@ public class MainPage {
 
         file = fileChooser.showOpenDialog(stage);
         filePath = file.toPath().toString();
-        
+
         try {
             if (DataBaseHandler.dbConnection != null) {
                 DataBaseHandler.dbConnection.close();
@@ -220,10 +224,12 @@ public class MainPage {
     public static ObservableList<String> row = null;
     public static ObservableList<ObservableList<String>> data = null;
 
-    static void buildData(String table) throws SQLException, ClassNotFoundException {
+    @SuppressWarnings("unchecked")
+    public static void buildData(String table) throws SQLException, ClassNotFoundException {
         columnNames.clear();
         Cleaner.newItemList();
         createTableView();
+
         TableView view = (TableView) scene.lookup("#ListofItems");
         data = FXCollections.observableArrayList();
         ResultSet resultSet = DataBaseHandler.getTableItem(table);
@@ -231,7 +237,7 @@ public class MainPage {
 
             final int j = i;
             TableColumn col = new TableColumn(resultSet.getMetaData().getColumnName(i + 1));
-
+            System.out.println(DataBaseHandler.getPrimaryKeys(getCurrentTable()).getString("TABLE_NAME"));
             col.setCellValueFactory(
                     (Callback<TableColumn.CellDataFeatures<ObservableList, String>, ObservableValue<String>>) param -> {
                         if (param.getValue().get(j) != null) {
@@ -241,10 +247,19 @@ public class MainPage {
                         }
 
                     });
-            col.setCellFactory(colomn -> {
-                TableCell<ObservableList, String> cell = new EditingCell();
-                return cell;
-            });
+
+            if (!DataBaseHandler.getPrimaryKeys(getCurrentTable()).getString("COLUMN_NAME").equals(col.getText())) {
+
+                col.setCellFactory(colomn -> {
+                    TableCell<ObservableList, String> cell = new EditingCell();
+                    return cell;
+                });
+            } else {
+                col.setCellFactory(colomn -> {
+                    TableCell<ObservableList, String> cell = new PrimaryKeyCell();
+                    return cell;
+                });
+            }
             view.setEditable(true);
 
             view.getColumns().addAll(col);

@@ -1,5 +1,7 @@
 package com;
 
+import com.dialogs.AddItemDialog;
+
 import javafx.scene.Scene;
 import javafx.scene.control.TableView;
 import javafx.scene.layout.GridPane;
@@ -10,6 +12,7 @@ public class Cleaner {
     static Scene mainPage = App.getScene();
     static Scene addItemDialog = AddItemDialog.getScene();
 
+    
     public static void newItemList() {
         VBox gridContainer = (VBox) mainPage.lookup("#gridContainer");
         TableView table = (TableView) mainPage.lookup("#ListofItems");

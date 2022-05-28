@@ -2,20 +2,20 @@ package com;
 
 import java.sql.SQLException;
 
+import com.dbase.DataBaseHandler;
+
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 
 public class EditingCell extends TableCell<ObservableList, String> {
     private TextField textField;
-    private static TableView view = MainPage.getTableView();
     String startValue = null;
 
     public EditingCell() {
@@ -23,10 +23,16 @@ public class EditingCell extends TableCell<ObservableList, String> {
 
     @Override
     public void startEdit() {
+        System.out.println(MainPage.data.get(0).get(0));
         startValue = this.getText();
         super.startEdit();
         if (textField == null) {
-            createTextField();
+
+            try {
+                createTextField();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
         }
         setText(null);
         setGraphic(textField);
@@ -61,43 +67,44 @@ public class EditingCell extends TableCell<ObservableList, String> {
         }
     }
 
-    private void createTextField() {
+    private void createTextField() throws SQLException {
         textField = new TextField(getString());
         textField.setMinWidth(this.getWidth() - this.getGraphicTextGap() * 2);
-        textField.setOnKeyPressed(new EventHandler<KeyEvent>() {                
-            @Override public void handle(KeyEvent t) {
+        textField.setOnKeyPressed(new EventHandler<KeyEvent>() {
+            @Override
+            public void handle(KeyEvent t) {
                 if (t.getCode() == KeyCode.ENTER) {
                     commitEdit(textField.getText());
 
                     String field = null;
                     int row = 0;
-                    i:for(int i = 0; i < view.getColumns().size(); i++){
-                        for(int j = 0; j < MainPage.data.size(); j++){
-                            for(int k = 0; k < MainPage.row.size(); k++){
-                                if(MainPage.data.get(j).get(k).equals(startValue)){
-                                    field = ((TableColumn)(view.getColumns().get(k))).getText();
-                                    row = j+1;
-                                    System.out.println(field);
+                    i: for (int i = 0; i < MainPage.getTableView().getColumns().size(); i++) {
+                        for (int j = 0; j < MainPage.data.size(); j++) {
+                            for (int k = 0; k < MainPage.row.size(); k++) {
+                                if (MainPage.data.get(j).get(k).equals(startValue)) {
+                                    field = ((TableColumn) (MainPage.getTableView().getColumns().get(k)))
+                                            .getText();
+                                    row = j + 1;
+                                    System.out.println(field + " Начальное значение " + startValue);
                                     break i;
                                 }
-                        }
+                            }
                         }
                     }
 
                     try {
-                        DataBaseHandler.updateValue(MainPage.getCurrentTable(),field, row , textField.getText());
+                        DataBaseHandler.updateValue(MainPage.getCurrentTable(), field, row,
+                                textField.getText());
                     } catch (SQLException e) {
 
                         e.printStackTrace();
                     }
 
+                    for (int i = 0; i < MainPage.data.size(); i++) {
+                        // System.out.println(startValue);
+                        for (int j = 0; j < MainPage.row.size(); j++) {
+                            if (MainPage.data.get(i).get(j).equals(startValue)) {
 
-                    for(int i = 0; i < MainPage.data.size(); i++){
-                        //System.out.println(startValue);
-                        for(int j = 0; j < MainPage.row.size(); j++)
-                        {
-                            if(MainPage.data.get(i).get(j).equals(startValue)){
-                                
                                 MainPage.data.get(i).set(j, textField.getText());
                             }
                         }
@@ -108,14 +115,14 @@ public class EditingCell extends TableCell<ObservableList, String> {
                 }
             }
         });
-    
+
         textField.focusedProperty().addListener(new ChangeListener<Boolean>() {
             @Override
-            public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
+            public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue,
+                    Boolean newValue) {
                 if (!newValue) {
-                    
-                        
-                        commitEdit(textField.getText());
+
+                    commitEdit(textField.getText());
                 }
             }
         });
@@ -124,4 +131,5 @@ public class EditingCell extends TableCell<ObservableList, String> {
     private String getString() {
         return getItem() == null ? "" : getItem().toString();
     }
+
 }

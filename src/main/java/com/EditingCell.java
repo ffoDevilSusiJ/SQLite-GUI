@@ -9,12 +9,11 @@ import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
 import javafx.scene.control.TableCell;
-import javafx.scene.control.TableColumn;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 
-public class EditingCell extends TableCell<ObservableList, String> {
+public class EditingCell extends TableCell<ObservableList<Object>, String> {
     private TextField textField;
     String startValue = null;
 
@@ -45,6 +44,7 @@ public class EditingCell extends TableCell<ObservableList, String> {
         setText((String) getItem());
         setGraphic(null);
         System.out.println("Отмена");
+        System.out.println();
     }
 
     @Override
@@ -78,24 +78,15 @@ public class EditingCell extends TableCell<ObservableList, String> {
 
                     String field = null;
                     int row = 0;
-                    i: for (int i = 0; i < MainPage.getTableView().getColumns().size(); i++) {
-                        for (int j = 0; j < MainPage.data.size(); j++) {
-                            for (int k = 0; k < MainPage.row.size(); k++) {
-                                if (MainPage.data.get(j).get(k).equals(startValue)) {
-                                    field = ((TableColumn) (MainPage.getTableView().getColumns().get(k)))
-                                            .getText();
-                                    row = j + 1;
-                                    System.out.println(field + " Начальное значение " + startValue);
-                                    break i;
-                                }
-                            }
-                        }
-                    }
+
+                    field = MainPage.getTableView().getFocusModel().getFocusedCell().getTableColumn().getText();
+                    row = MainPage.getTableView().getFocusModel().getFocusedCell().getRow() + 1;
+                    System.out.println(field + " Начальное значение " + startValue);
 
                     try {
                         DataBaseHandler.updateValue(MainPage.getCurrentTable(), field, row,
                                 textField.getText());
-                    } catch (SQLException e) {
+                    } catch (SQLException | ClassNotFoundException e) {
 
                         e.printStackTrace();
                     }

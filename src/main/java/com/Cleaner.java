@@ -2,8 +2,8 @@ package com;
 
 import com.dialogs.AddItemDialog;
 
+import javafx.scene.Node;
 import javafx.scene.Scene;
-import javafx.scene.control.TableView;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.VBox;
 
@@ -15,7 +15,7 @@ public class Cleaner {
     
     public static void newItemList() {
         VBox gridContainer = (VBox) mainPage.lookup("#gridContainer");
-        TableView table = (TableView) mainPage.lookup("#ListofItems");
+        Node table = mainPage.lookup("#ListofItems");
         if (table != null) {
             gridContainer.getChildren().remove(table);
         }

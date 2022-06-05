@@ -14,6 +14,7 @@ import java.util.List;
 
 import com.dbase.DataBaseHandler;
 import com.dialogs.AddItemDialog;
+import com.dialogs.AddTableDialog;
 
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.value.ObservableValue;
@@ -43,6 +44,7 @@ public class MainPage {
     static Scene scene = App.getScene();
     static Stage stage = App.getStage();
     static String currentTable = null;
+    TableView tableView = null;
 
     // show start tip label
     public static void showStartTipLabel() {
@@ -60,14 +62,24 @@ public class MainPage {
         gridContainer.setAlignment(Pos.TOP_LEFT);
     }
 
-    // Add Item
-    public static void ItemAdder(FXMLLoader fxmlLoader) {
-        MenuItem openMenuItem = (MenuItem) fxmlLoader.getNamespace().get("item_add");
-        openMenuItem.setOnAction(new EventHandler<ActionEvent>() {
+    public static void MenuActions(FXMLLoader fxmlLoader) {
+        SaveAction(fxmlLoader);
+        FilePicker(fxmlLoader);
+        ItemAdder(fxmlLoader);
+        ItemRemover(fxmlLoader);
+        TableRemover(fxmlLoader);
+        TableAdder(fxmlLoader);
+    }
+
+    // Add Table
+    private static void TableAdder(FXMLLoader fxmlLoader) {
+        MenuItem addTableMenu = (MenuItem) fxmlLoader.getNamespace().get("table_add");
+        addTableMenu.setOnAction(new EventHandler<ActionEvent>() {
             public void handle(final ActionEvent e) {
-                AddItemDialog item_Dialog = new AddItemDialog();
+                AddTableDialog table_Dialog = new AddTableDialog();
                 try {
-                    item_Dialog.display();
+                    table_Dialog.display();
+                    showTables();
                 } catch (ClassNotFoundException | SQLException | IOException e1) {
                     e1.printStackTrace();
                 }
@@ -76,13 +88,83 @@ public class MainPage {
         });
     }
 
+    // Remove Table
+    private static void TableRemover(FXMLLoader fxmlLoader) {
+        MenuItem removeTableMenu = (MenuItem) fxmlLoader.getNamespace().get("table_remove");
+        removeTableMenu.setOnAction(new EventHandler<ActionEvent>() {
+            public void handle(final ActionEvent e) {
+                try {
+                    DataBaseHandler.removeTable(getCurrentTable());
+                    showTables();
+                } catch (ClassNotFoundException | SQLException e1) {
+                    e1.printStackTrace();
+                }
+
+            }
+        });
+    }
+
+    // Add Item
+    private static void ItemAdder(FXMLLoader fxmlLoader) {
+        
+        MenuItem addItemMenu = (MenuItem) fxmlLoader.getNamespace().get("item_add");
+        addItemMenu.setOnAction(new EventHandler<ActionEvent>() {
+            public void handle(final ActionEvent e) {
+                AddItemDialog item_Dialog = new AddItemDialog();
+                try {
+                    //DataBaseHandler.formField(getCurrentTable());
+                    item_Dialog.display();
+                    MainPage.buildData(MainPage.getCurrentTable());
+                } catch (ClassNotFoundException | SQLException | IOException e1) {
+                    e1.printStackTrace();
+                }
+
+            }
+        });
+    }
+
+    // Remove Item
+    private static void ItemRemover(FXMLLoader fxmlLoader) {
+        MenuItem removeItemMenu = (MenuItem) fxmlLoader.getNamespace().get("item_remove");
+        removeItemMenu.setOnAction(new EventHandler<ActionEvent>() {
+            public void handle(final ActionEvent e) {
+                try {
+
+                    ResultSet primaryKeys = DataBaseHandler.getPrimaryKeys(getCurrentTable());
+                    String prim = primaryKeys.getString("COLUMN_NAME");
+
+                    primaryKeys.getStatement().getConnection().close();
+                    DataBaseHandler.removeItem(getCurrentTable(), prim,
+                            data.get(getTableView().getFocusModel().getFocusedCell().getRow())
+                                    .get(columnNames.indexOf(prim)));
+                    updateAfterRemove(getTableView().getFocusModel().getFocusedCell().getRow());
+                    buildData(getCurrentTable());
+                } catch (ClassNotFoundException | SQLException e1) {
+                    e1.printStackTrace();
+                }
+
+            }
+        });
+    }
+
+    private static void updateAfterRemove(int i) throws SQLException, ClassNotFoundException {
+        ResultSet primaryKeys = DataBaseHandler.getPrimaryKeys(getCurrentTable());
+        String prim = primaryKeys.getString("COLUMN_NAME");
+        int column = columnNames.indexOf(primaryKeys.getString("COLUMN_NAME"));
+        primaryKeys.getStatement().getConnection().close();
+        for (; i < data.size(); i++) {
+            DataBaseHandler.updateValue(getCurrentTable(), prim, (i + 1),
+                    String.valueOf((Integer.parseInt(MainPage.data.get(i).get(column)) - 1)));
+        }
+    }
+
     // File Chooser
     static File file;
     static File file_temp;
     static String filePath;
     static Path fileCopy = null;
 
-    public static void FilePicker(FXMLLoader fxmlLoader) {
+    private static void FilePicker(FXMLLoader fxmlLoader) {
 
         MenuItem openMenuItem = (MenuItem) fxmlLoader.getNamespace().get("file_open");
         openMenuItem.setOnAction(new EventHandler<ActionEvent>() {
@@ -116,14 +198,11 @@ public class MainPage {
         filePath = file.toPath().toString();
 
         try {
-            if (DataBaseHandler.dbConnection != null) {
-                DataBaseHandler.dbConnection.close();
-            }
             Files.deleteIfExists(Paths.get("C:\\Windows\\TEMP\\" + file.getName() + "_temp.db"));
             file_temp = new File("C:\\Windows\\TEMP\\" + file.getName() + "_temp.db");
             fileCopy = Files.copy(file.toPath(), file_temp.toPath(),
                     (CopyOption) StandardCopyOption.REPLACE_EXISTING);
-        } catch (IOException | SQLException e1) {
+        } catch (IOException e1) {
             e1.printStackTrace();
         }
 
@@ -150,7 +229,7 @@ public class MainPage {
         }
     }
 
-    public static void SaveAction(FXMLLoader fxmlLoader) {
+    private static void SaveAction(FXMLLoader fxmlLoader) {
         MenuItem saveMenuItem = (MenuItem) fxmlLoader.getNamespace().get("file_save");
         saveMenuItem.setOnAction(new EventHandler<ActionEvent>() {
 
@@ -184,8 +263,9 @@ public class MainPage {
 
     // List of tables on the right
     public static void showTables() throws ClassNotFoundException, SQLException {
-        VBox tables = (VBox) scene.lookup("#ListofTables");
 
+        VBox tables = (VBox) scene.lookup("#ListofTables");
+        Cleaner.newTableList();
         ResultSet rs = DataBaseHandler.getTablesSet();
         ArrayList<Label> tablesList = new ArrayList<Label>();
         while (rs.next()) {
@@ -217,10 +297,12 @@ public class MainPage {
             }
         }
         tables.getChildren().addAll(tablesList);
+        rs.getStatement().getConnection().close();
+        rs.getStatement().close();
     }
 
     // List of items from the active table
-    public static List<String> columnNames = new ArrayList<>();
+    public static ArrayList<String> columnNames = new ArrayList<>();
     public static ObservableList<String> row = null;
     public static ObservableList<ObservableList<String>> data = null;
 
@@ -229,15 +311,14 @@ public class MainPage {
         columnNames.clear();
         Cleaner.newItemList();
         createTableView();
-
+        ResultSet primaryKeys = DataBaseHandler.getPrimaryKeys(getCurrentTable());
         TableView view = (TableView) scene.lookup("#ListofItems");
         data = FXCollections.observableArrayList();
         ResultSet resultSet = DataBaseHandler.getTableItem(table);
-        for (int i = 0; i < resultSet.getMetaData().getColumnCount(); i++) {
-
+        for (int i = 0; i < resultSet.getMetaData().getColumnCount() + 1; i++) {
+            if(i <  resultSet.getMetaData().getColumnCount()){
             final int j = i;
             TableColumn col = new TableColumn(resultSet.getMetaData().getColumnName(i + 1));
-            System.out.println(DataBaseHandler.getPrimaryKeys(getCurrentTable()).getString("TABLE_NAME"));
             col.setCellValueFactory(
                     (Callback<TableColumn.CellDataFeatures<ObservableList, String>, ObservableValue<String>>) param -> {
                         if (param.getValue().get(j) != null) {
@@ -247,24 +328,48 @@ public class MainPage {
                         }
 
                     });
+            String primaryColumn;
+            try {
+                primaryColumn = primaryKeys.getString("COLUMN_NAME");
+            } catch (SQLException e) {
+                primaryColumn = "none";
+            }
 
-            if (!DataBaseHandler.getPrimaryKeys(getCurrentTable()).getString("COLUMN_NAME").equals(col.getText())) {
+            if (!primaryColumn.equals(col.getText())) {
 
                 col.setCellFactory(colomn -> {
-                    TableCell<ObservableList, String> cell = new EditingCell();
+                    TableCell<ObservableList<Object>, String> cell = new EditingCell();
                     return cell;
                 });
             } else {
                 col.setCellFactory(colomn -> {
-                    TableCell<ObservableList, String> cell = new PrimaryKeyCell();
+                    TableCell<ObservableList<Object>, String> cell = new PrimaryKeyCell();
+
                     return cell;
                 });
             }
-            view.setEditable(true);
+
 
             view.getColumns().addAll(col);
             columnNames.add(col.getText());
+        } else {
+            TableColumn col = new TableColumn("");
+            final int j = i;
+            col.setCellValueFactory(
+                    (Callback<TableColumn.CellDataFeatures<ObservableList, String>, ObservableValue<String>>) param -> {
+                        if (param.getValue().get(j) != null) {
+                            return new SimpleStringProperty("");
+                        } else {
+                            return null;
+                        }
 
+                    });
+                    col.setCellFactory(colomn -> {
+                        TableCell<ObservableList<Object>, String> cell = new AddColumnCell();
+                        return cell;
+                    });
+                    view.getColumns().addAll(col);
+        }
         }
 
         while (resultSet.next()) {
@@ -282,6 +387,11 @@ public class MainPage {
 
         // FINALLY ADDED TO TableView
         view.setItems(data);
+        resultSet.getStatement().getConnection().close();
+        resultSet.getStatement().close();
+        primaryKeys.getStatement().getConnection().close();
+        primaryKeys.getStatement().close();
+       
     }
 
     public List<String> getColumnNames() {

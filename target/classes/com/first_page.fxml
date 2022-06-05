@@ -21,14 +21,15 @@
                 </Menu>
                 <Menu mnemonicParsing="false" text="Table">
                   <items>
-                        <MenuItem mnemonicParsing="false" text="Create Table" />
-                        <MenuItem mnemonicParsing="false" text="Delete Table" />
+                        <MenuItem id="table_add" fx:id="table_add"  mnemonicParsing="false" text="Create Table" />
+                        <MenuItem id="table_remove" fx:id="table_remove"  mnemonicParsing="false" text="Delete Table" />
+                        <MenuItem id="table_add" fx:id="table_add"  mnemonicParsing="false" text="Add Column" />
                   </items>
                 </Menu>
                 <Menu mnemonicParsing="false" text="Item">
                   <items>
                     <MenuItem id="item_add" fx:id="item_add"  mnemonicParsing="false" text="New Item" />
-                        <MenuItem mnemonicParsing="false" text="Delete Item" />
+                        <MenuItem id="item_remove" fx:id="item_remove" mnemonicParsing="false" text="Delete Item" />
                   </items>
                 </Menu>
               </menus>

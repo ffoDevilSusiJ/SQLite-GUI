@@ -19,7 +19,12 @@
 #items_row{
 
 }
-
+.oneCell  {  
+    -fx-control-inner-background: #41414157;
+    fx-table-cell-border-color: #5c4b00;
+    -fx-background-color: -fx-table-cell-border-color, -fx-control-inner-background;
+    -fx-background-insets: 0, 0 0 1 0;
+}
 .active_table{
     -fx-text-fill: red;
 }

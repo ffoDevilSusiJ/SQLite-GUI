@@ -12,17 +12,15 @@ import javafx.scene.control.TableCell;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseEvent;
 
 public class EditingCell extends TableCell<ObservableList<Object>, String> {
     private TextField textField;
     String startValue = null;
-
-    public EditingCell() {
-    }
-
+    static EditingCell editCell;
+    EditingCell currentCell = this;
     @Override
     public void startEdit() {
-        System.out.println(MainPage.data.get(0).get(0));
         startValue = this.getText();
         super.startEdit();
         if (textField == null) {
@@ -43,8 +41,6 @@ public class EditingCell extends TableCell<ObservableList<Object>, String> {
         super.cancelEdit();
         setText((String) getItem());
         setGraphic(null);
-        System.out.println("Отмена");
-        System.out.println();
     }
 
     @Override
@@ -62,6 +58,23 @@ public class EditingCell extends TableCell<ObservableList<Object>, String> {
                 setGraphic(textField);
             } else {
                 setText(getString());
+                this.setOnMouseClicked(new EventHandler<MouseEvent>() {
+
+                    @Override
+                    public void handle(MouseEvent arg0) {
+                        
+                        if(editCell == null){
+                            editCell = currentCell;
+                            startEdit();
+                        } else {
+                            editCell.cancelEdit();
+                            editCell = currentCell;
+                            startEdit();
+                            
+                        }
+                    }
+                    
+                });
                 setGraphic(null);
             }
         }

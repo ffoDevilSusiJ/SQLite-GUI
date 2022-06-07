@@ -18,12 +18,17 @@ import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Alert.AlertType;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
@@ -40,20 +45,37 @@ public class AddTableDialog implements Dialogs {
     static VBox gridVBox;
     static int fieldCount;
     static Button addFieldButton = null;
-    static String tableName; 
+    static String tableName;
+
+    static ArrayList<ComboBox> comboBoxes;
+    static ArrayList<TextField> fieldNameTextFields;
+    static TextField tableNameTextField;
+    static ArrayList<CheckBox> primaryKeyCheckBoxs;
+    static ArrayList<CheckBox> autoincrementCheckBoxs;
+
+    static boolean hasType = false;
+    static boolean hasTableName = false;
+    static boolean hasFieldName = false;
+    static boolean hasPrimaryKey = false;
+    static boolean hasNoRepeatFieldName = false;
+    static boolean hasIntegerOnAutoincrement = false;
+
+    static VBox pane;
+    static Stage stage;
+
     @Override
     public void display() throws ClassNotFoundException, SQLException, IOException {
-        
+
         fieldCount = 0;
         fields = new ArrayList<>();
         scene = new Scene(Dialogs.loadFXML("add_table_dialog"), 0, 150);
 
-        Stage stage = new Stage();
+        stage = new Stage();
 
         stage.setResizable(false);
         stage.initModality(Modality.APPLICATION_MODAL);
 
-        VBox pane = (VBox) scene.lookup("#vbox");
+        pane = (VBox) scene.lookup("#vbox");
         gridVBox = new VBox();
         gridVBox.setPrefHeight(200);
         ScrollPane scroll = new ScrollPane(gridVBox) {
@@ -64,46 +86,131 @@ public class AddTableDialog implements Dialogs {
         pane.setSpacing(10);
 
         pane.setPrefSize(250, 250);
-        
+
         HBox tableNameArea = new HBox(10);
         tableNameArea.setAlignment(Pos.CENTER);
-        TextField tableNameField = new TextField();
-        
+        tableNameTextField = new TextField();
 
-        tableNameField.textProperty().addListener(new ChangeListener<String>() {
+        tableNameTextField.textProperty().addListener(new ChangeListener<String>() {
 
             @Override
             public void changed(ObservableValue<? extends String> arg0, String arg1, String newValue) {
+                hasTableName = true;
+                tableNameTextField.getStyleClass().remove("error-box");
                 tableName = newValue;
             }
 
         });
-        Label nameLabel = new Label("Table Name");
-        tableNameArea.getChildren().add(nameLabel);
-        tableNameArea.getChildren().add(tableNameField);
+        tableNameArea.getChildren().add(new Label("Table Name"));
+        tableNameArea.getChildren().add(tableNameTextField);
 
+        comboBoxes = new ArrayList<>();
+        fieldNameTextFields = new ArrayList<>();
+        primaryKeyCheckBoxs = new ArrayList<>();
+        autoincrementCheckBoxs = new ArrayList<>();
+
+        addField();
+        pane.getChildren().add(tableNameArea);
+        pane.getChildren().add(scroll);
+        addButtons();
+        stage.setWidth(600);
+        stage.setHeight(325);
+        stage.setTitle("Add new item");
+        stage.setScene(scene);
+
+        stage.showAndWait();
+
+        // DataBaseHandler.getTableItem(MainPage.getCurrentTable());
+    }
+
+    private static void addButtons() {
         GridPane buttons = new GridPane();
-        buttons.getColumnConstraints().add(new ColumnConstraints(80));
         buttons.getColumnConstraints().add(new ColumnConstraints(80));
 
         buttons.setAlignment(Pos.CENTER);
-
-        //
-        Label tip = new Label("The primary key should not be repeated");
-        tip.getStyleClass().add("error");
-        //
 
         Button submit = new Button("Submit");
         submit.setOnAction(new EventHandler<ActionEvent>() {
 
             @Override
             public void handle(ActionEvent arg0) {
-                try {
-                    DataBaseHandler.createTable(tableName, fields);
-                } catch (ClassNotFoundException | SQLException e) {
-                    e.printStackTrace();
+
+                for (TextField field : fieldNameTextFields) {
+                    int repeat = 0;
+                    for (int i = 0; i < fieldNameTextFields.size(); i++) {
+                        if (field.getText().equals(fieldNameTextFields.get(i).getText())) {
+                            repeat++;
+                            if (repeat > 1) {
+                                hasNoRepeatFieldName = false;
+                                if (!field.getStyleClass().contains("error-box"))
+                                    field.getStyleClass().add("error-box");
+                                if (!fieldNameTextFields.get(i).getStyleClass().contains("error-box"))
+                                    fieldNameTextFields.get(i).getStyleClass().add("error-box");
+                            }
+                        }
+
+                    }
                 }
-                stage.close();
+
+                for (ComboBox comboBox : comboBoxes) {
+                    if (comboBox.getValue() == null) {
+                        hasType = false;
+                        if (!comboBox.getStyleClass().contains("error-box"))
+                            comboBox.getStyleClass().add("error-box");
+                    }
+                }
+
+                for (TextField textField : fieldNameTextFields) {
+                    if (textField.getText() == "") {
+                        hasFieldName = false;
+                        if (!textField.getStyleClass().contains("error-box"))
+                            textField.getStyleClass().add("error-box");
+                    }
+                }
+
+                if (tableNameTextField.getText() == "") {
+                    hasTableName = false;
+                    if (!tableNameTextField.getStyleClass().contains("error-box"))
+                        tableNameTextField.getStyleClass().add("error-box");
+                }
+
+                if (!hasPrimaryKey) {
+                    for (CheckBox box : primaryKeyCheckBoxs) {
+                        if (!box.getStyleClass().contains("error-box"))
+                            box.getStyleClass().add("error-box");
+                    }
+                }
+
+                if (hasType && hasFieldName && hasTableName && hasPrimaryKey && hasNoRepeatFieldName) {
+                    try {
+                        DataBaseHandler.createTable(tableName, fields);
+                    } catch (ClassNotFoundException | SQLException e) {
+                        e.printStackTrace();
+                    }
+                    stage.close();
+                } else {
+                    if (!hasType || !hasFieldName || !hasTableName || !hasPrimaryKey || !hasNoRepeatFieldName) {
+                        String error = "";
+                        if (!hasType) {
+                            error = error + "The field type cannot be empty\n";
+                        }
+                        if (!hasFieldName) {
+                            error = error + "The field name cannot be empty\n";
+                        }
+                        if (!hasTableName) {
+                            error = error + "The table name cannot be empty\n";
+                        }
+                        if (!hasPrimaryKey) {
+                            error = error + "There must be at least one primary key field\n";
+                        }
+                        if (!hasNoRepeatFieldName) {
+                            error = error + "Field names should not be duplicated\n";
+                        }
+                        Alert alert = new Alert(AlertType.ERROR, error,
+                                ButtonType.OK);
+                        alert.showAndWait();
+                    }
+                }
             }
 
         });
@@ -119,104 +226,153 @@ public class AddTableDialog implements Dialogs {
         buttons.add(submit, 0, 0);
         buttons.add(cancel, 1, 0);
 
-        addField();
-        pane.getChildren().add(tableNameArea);
-        pane.getChildren().add(scroll);
         pane.getChildren().add(buttons);
-        stage.setWidth(600);
-        stage.setHeight(325);
-        stage.setTitle("Add new item");
-        stage.setScene(scene);
-
-        stage.showAndWait();
-
-        // DataBaseHandler.getTableItem(MainPage.getCurrentTable());
     }
 
     private static void addField() {
         DataBaseField field = new DataBaseField();
         fieldCount++;
         GridPane grid = new GridPane();
+        grid.addEventFilter(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
+
+            @Override
+            public void handle(MouseEvent arg0) {
+                if (arg0.getButton().equals(MouseButton.SECONDARY)) {
+                    
+                    if(gridVBox.getChildren().indexOf(grid) == (gridVBox.getChildren().size() - 1)){
+                        GridPane btnGrid = new GridPane();
+                        btnGrid.getColumnConstraints().add(new ColumnConstraints(30));
+                        GridPane.setMargin(btnGrid, new Insets(30, 30, 30, 30));
+                        btnGrid.add(addFieldButton(), 0, 1);
+                        gridVBox.getChildren().add(btnGrid);
+                        btnGrid.setId("field_" + fieldCount);
+
+                        for (int i = 0; i < fieldCount; i++) {
+                            GridPane pane = (GridPane) scene.lookup("#field_" + (i + 1));
+                            if (pane != null) {
+                                if (pane.getChildren().contains(addFieldButton)) {
+                                    pane.getChildren().remove(addFieldButton);
+                                    pane.getRowConstraints().remove(1);
+                                }
+                            }
+                        }
+                    }
+                    gridVBox.getChildren().remove(grid);
+                    return;
+                }
+
+            }
+
+        });
         grid.setId("field_" + fieldCount);
         grid.getColumnConstraints().add(new ColumnConstraints(110));
         grid.getColumnConstraints().add(new ColumnConstraints(150));
-        grid.getColumnConstraints().add(new ColumnConstraints(30));
-        grid.getColumnConstraints().add(new ColumnConstraints(30));
-        grid.getColumnConstraints().add(new ColumnConstraints(30));
-        grid.getColumnConstraints().add(new ColumnConstraints(30));
-        grid.getColumnConstraints().add(new ColumnConstraints(30));
-        grid.getColumnConstraints().add(new ColumnConstraints(30));
-        grid.getColumnConstraints().add(new ColumnConstraints(30));
-        grid.getColumnConstraints().add(new ColumnConstraints(30));
-        grid.getColumnConstraints().add(new ColumnConstraints(30));
+        int attr = 9;
+        for (int i = 0; i < attr; i++) {
+            grid.getColumnConstraints().add(new ColumnConstraints(30));
+        }
         grid.getRowConstraints().add(new RowConstraints(30));
         grid.setAlignment(Pos.CENTER);
 
         TextField fieldName = new TextField();
         fieldName.setPromptText("Field name");
         fieldName.setMaxWidth(80);
+        fieldNameTextFields.add(fieldName);
         fieldName.textProperty().addListener(new ChangeListener<String>() {
 
             @Override
             public void changed(ObservableValue<? extends String> arg0, String arg1, String newValue) {
                 field.setName(newValue);
+                fieldName.getStyleClass().remove("error-box");
+                hasFieldName = true;
+                hasNoRepeatFieldName = true;
             }
 
         });
         grid.add(fieldName, 0, 0);
         fieldName.setFocusTraversable(false);
 
-
         ObservableList<String> types = FXCollections.observableArrayList(DataBaseFieldTypes.getNames());
         ComboBox<String> boxs = new ComboBox<>(types);
+
+        comboBoxes.add(boxs);
         boxs.setOnAction(new EventHandler<ActionEvent>() {
 
             @Override
             public void handle(ActionEvent arg0) {
                 field.setType(boxs.getSelectionModel().getSelectedItem());
+                boxs.getStyleClass().remove("error-box");
+                hasType = true;
                 System.out.println(field.getType());
             }
-            
+
         });
         grid.add(boxs, 1, 0);
 
-
-        grid.add(new Label("PK"), 2, 0);
+        CheckBox aiBox = new CheckBox();
+        aiBox.setDisable(true);
         CheckBox pkBox = new CheckBox();
+        if (hasPrimaryKey)
+            pkBox.setDisable(true);
+        CheckBox nnBox = new CheckBox();
+
+        // Primary Key
+        grid.add(new Label("PK"), 2, 0);
+        primaryKeyCheckBoxs.add(pkBox);
         pkBox.setFocusTraversable(false);
+
         pkBox.setOnAction(new EventHandler<ActionEvent>() {
 
             @Override
             public void handle(ActionEvent arg0) {
-                if (field.isPrimaryKey())
+                if (field.isPrimaryKey()) {
+                    hasPrimaryKey = false;
                     field.setPrimaryKey(false);
-                else
+                    for (CheckBox box : primaryKeyCheckBoxs) {
+                        box.setDisable(false);
+                    }
+                    aiBox.setDisable(true);
+                    aiBox.setSelected(false);
+                    field.setAutoIncrement(false);
+                } else {
+                    hasPrimaryKey = true;
                     field.setPrimaryKey(true);
+                    for (CheckBox box : primaryKeyCheckBoxs) {
+                        aiBox.setDisable(false);
+                        box.getStyleClass().remove("error-box");
+                        box.setDisable(true);
+                        pkBox.setDisable(false);
+                    }
+                }
             }
 
         });
 
         grid.add(pkBox, 3, 0);
 
+        // Autoincrement
         grid.add(new Label("AI"), 4, 0);
-        CheckBox aiBox = new CheckBox();
         aiBox.setFocusTraversable(false);
         aiBox.setOnAction(new EventHandler<ActionEvent>() {
 
             @Override
             public void handle(ActionEvent arg0) {
-                if (field.isAutoIncrement())
+                if (field.isAutoIncrement()) {
                     field.setAutoIncrement(false);
-                else
+                    boxs.setDisable(false);
+                } else {
+                    boxs.setValue("INTEGER");
+                    boxs.setDisable(true);
                     field.setAutoIncrement(true);
+                }
 
             }
 
         });
         grid.add(aiBox, 5, 0);
 
+        // Not Null
         grid.add(new Label("NN"), 6, 0);
-        CheckBox nnBox = new CheckBox();
         nnBox.setFocusTraversable(false);
         nnBox.setOnAction(new EventHandler<ActionEvent>() {
 
@@ -284,6 +440,13 @@ public class AddTableDialog implements Dialogs {
         }
         grid.getRowConstraints().add(new RowConstraints(30));
 
+        fields.add(field);
+        GridPane.setMargin(grid, new Insets(30, 30, 30, 30));
+        grid.add(addFieldButton(), 0, 1);
+        gridVBox.getChildren().add(grid);
+
+    }
+    private static Button addFieldButton(){
         Button button = new Button("+");
         addFieldButton = button;
         button.setOnAction(new EventHandler<ActionEvent>() {
@@ -294,13 +457,9 @@ public class AddTableDialog implements Dialogs {
             }
 
         });
-        fields.add(field);
-        GridPane.setMargin(grid, new Insets(30, 30, 30, 30));
-        grid.add(button, 0, 1);
-        gridVBox.getChildren().add(grid);
 
+        return button;
     }
-
     public static Scene getScene() {
         return scene;
     }

@@ -23,7 +23,7 @@
                   <items>
                         <MenuItem id="table_add" fx:id="table_add"  mnemonicParsing="false" text="Create Table" />
                         <MenuItem id="table_remove" fx:id="table_remove"  mnemonicParsing="false" text="Delete Table" />
-                        <MenuItem id="table_add" fx:id="table_add"  mnemonicParsing="false" text="Add Column" />
+                        <MenuItem id="table_addColumn" fx:id="table_addColumn"  mnemonicParsing="false" text="Add Column" />
                   </items>
                 </Menu>
                 <Menu mnemonicParsing="false" text="Item">

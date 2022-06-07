@@ -174,4 +174,27 @@ public class DataBaseHandler {
 		statement.executeUpdate(query);
 		statement.getConnection().close();
 	}
+
+	public static void addField(String table, DataBaseField field) throws SQLException, ClassNotFoundException {
+		Statement statement = getDBConnection().createStatement();
+		String query = "ALTER TABLE " + table + " ADD ";
+			query = query + field.getName() + " " + field.getType() + " ";
+			if(field.isPrimaryKey()){
+				query = query + "PRIMARY KEY ";
+			}
+			if(field.isAutoIncrement){
+				query = query + "AUTOINCREMENT ";
+			}
+			if(field.isNOTNULL){
+				query = query + "NOT NULL ";
+			}
+			if(field.isUNIQUE){
+				query = query + "UNIQUE ";
+			}
+
+		query = query + ";";
+		System.out.println(query);
+		statement.executeUpdate(query);
+		statement.getConnection().close();
+	}
 }

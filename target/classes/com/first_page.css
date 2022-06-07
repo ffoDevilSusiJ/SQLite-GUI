@@ -34,3 +34,9 @@
 .start_label{
     -fx-text-fill: rgba(124, 124, 124, 0.63);
 }
+
+.error-box{
+    -fx-border-color: red;
+    -fx-border-width: 1 1 1 1;
+    -fx-border-radius: 0.5;
+}

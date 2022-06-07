@@ -46,19 +46,19 @@ public class AddItemDialog implements Dialogs {
 
         VBox pane = (VBox) scene.lookup("#vbox");
         VBox gridVBox = new VBox();
-        gridVBox.setPrefHeight(100);
+        gridVBox.setPrefHeight(150);
         ScrollPane scroll = new ScrollPane(gridVBox) {
             public void requestFocus() {
             }
         };
+        
+        
+        pane.setSpacing(10);
         scroll.setFitToWidth(true);
-        pane.setSpacing(30);
-
-        pane.setPrefSize(250, 150);
 
         GridPane buttons = new GridPane();
         buttons.getColumnConstraints().add(new ColumnConstraints(80));
-        buttons.getColumnConstraints().add(new ColumnConstraints(80));
+        
 
         buttons.setAlignment(Pos.CENTER);
 
@@ -190,7 +190,7 @@ public class AddItemDialog implements Dialogs {
 
         pane.getChildren().add(scroll);
         pane.getChildren().add(buttons);
-        stage.setWidth(400);
+        stage.setWidth(420);
         stage.setHeight(250);
         stage.setTitle("Add new item");
         stage.setScene(scene);

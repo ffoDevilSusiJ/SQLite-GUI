@@ -47,6 +47,7 @@ public class App extends Application {
             }
 
         });
+        stage.setResizable(false);
         stage.setTitle("SQLite GUI");
         MainPage.showStartTipLabel();
         AnchorPane.setRightAnchor((HBox) scene.lookup("#topBox"), 10.0);

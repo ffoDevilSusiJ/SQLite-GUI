@@ -1,5 +1,10 @@
 package com;
 
+import java.io.IOException;
+import java.sql.SQLException;
+
+import com.dialogs.AddFieldDialog;
+
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
 import javafx.scene.control.Button;
@@ -20,8 +25,11 @@ public class AddColumnCell extends TableCell<ObservableList<Object>, String>{
 
             @Override
             public void handle(MouseEvent arg0) {
-                System.out.println("ff");
-                
+                try {
+                    new AddFieldDialog().display();
+                } catch (ClassNotFoundException | SQLException | IOException e) {
+                    e.printStackTrace();
+                } 
             }
             
         });

@@ -19,17 +19,18 @@ public class EditingCell extends TableCell<ObservableList<Object>, String> {
     String startValue = null;
     static EditingCell editCell;
     EditingCell currentCell = this;
+
+    public EditingCell() {
+
+    }
+
     @Override
     public void startEdit() {
+        System.out.println("gg");
         startValue = this.getText();
         super.startEdit();
         if (textField == null) {
-
-            try {
-                createTextField();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+            createTextField();
         }
         setText(null);
         setGraphic(textField);
@@ -58,29 +59,12 @@ public class EditingCell extends TableCell<ObservableList<Object>, String> {
                 setGraphic(textField);
             } else {
                 setText(getString());
-                this.setOnMouseClicked(new EventHandler<MouseEvent>() {
-
-                    @Override
-                    public void handle(MouseEvent arg0) {
-                        
-                        if(editCell == null){
-                            editCell = currentCell;
-                            startEdit();
-                        } else {
-                            editCell.cancelEdit();
-                            editCell = currentCell;
-                            startEdit();
-                            
-                        }
-                    }
-                    
-                });
                 setGraphic(null);
             }
         }
     }
 
-    private void createTextField() throws SQLException {
+    private void createTextField() {
         textField = new TextField(getString());
         textField.setMinWidth(this.getWidth() - this.getGraphicTextGap() * 2);
         textField.setOnKeyPressed(new EventHandler<KeyEvent>() {
@@ -107,8 +91,12 @@ public class EditingCell extends TableCell<ObservableList<Object>, String> {
                     for (int i = 0; i < MainPage.data.size(); i++) {
                         // System.out.println(startValue);
                         for (int j = 0; j < MainPage.row.size(); j++) {
-                            if (MainPage.data.get(i).get(j).equals(startValue)) {
+                            if (MainPage.data.get(i).get(j) != null) {
+                                if (MainPage.data.get(i).get(j).equals(startValue)) {
 
+                                    MainPage.data.get(i).set(j, textField.getText());
+                                }
+                            } else {
                                 MainPage.data.get(i).set(j, textField.getText());
                             }
                         }

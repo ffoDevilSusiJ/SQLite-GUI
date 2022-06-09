@@ -23,7 +23,9 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuItem;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Alert.AlertType;
@@ -44,7 +46,7 @@ public class AddTableDialog implements Dialogs {
     boolean primaryKeyRepeat = false;
     static VBox gridVBox;
     static int fieldCount;
-    static Button addFieldButton = null;
+    static HBox addFieldBox = null;
     static String tableName;
 
     static ArrayList<ComboBox> comboBoxes;
@@ -77,6 +79,7 @@ public class AddTableDialog implements Dialogs {
 
         pane = (VBox) scene.lookup("#vbox");
         gridVBox = new VBox();
+        gridVBox.setSpacing(5);
         gridVBox.setPrefHeight(200);
         ScrollPane scroll = new ScrollPane(gridVBox) {
             public void requestFocus() {
@@ -233,31 +236,31 @@ public class AddTableDialog implements Dialogs {
         DataBaseField field = new DataBaseField();
         fieldCount++;
         GridPane grid = new GridPane();
+
+        //Right click context menu
         grid.addEventFilter(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
 
             @Override
-            public void handle(MouseEvent arg0) {
-                if (arg0.getButton().equals(MouseButton.SECONDARY)) {
-                    
-                    if(gridVBox.getChildren().indexOf(grid) == (gridVBox.getChildren().size() - 1)){
-                        GridPane btnGrid = new GridPane();
-                        btnGrid.getColumnConstraints().add(new ColumnConstraints(30));
-                        GridPane.setMargin(btnGrid, new Insets(30, 30, 30, 30));
-                        btnGrid.add(addFieldButton(), 0, 1);
-                        gridVBox.getChildren().add(btnGrid);
-                        btnGrid.setId("field_" + fieldCount);
+            public void handle(MouseEvent e) {
+                if (e.getButton().equals(MouseButton.SECONDARY)) {
+                    ContextMenu contextMenu = new ContextMenu();
+                    MenuItem item1 = new MenuItem("delete");
+                    item1.setOnAction(new EventHandler<ActionEvent>() {
 
-                        for (int i = 0; i < fieldCount; i++) {
-                            GridPane pane = (GridPane) scene.lookup("#field_" + (i + 1));
-                            if (pane != null) {
-                                if (pane.getChildren().contains(addFieldButton)) {
-                                    pane.getChildren().remove(addFieldButton);
-                                    pane.getRowConstraints().remove(1);
-                                }
-                            }
+                        @Override
+                        public void handle(ActionEvent arg0) {
+                            gridVBox.getChildren().remove(grid);
                         }
+                        
+                    });
+                    contextMenu.getItems().add(item1);
+                    contextMenu.setAutoHide(true);
+                    contextMenu.show(scene.getWindow(), e.getScreenX(), e.getScreenY());
+                    if(contextMenu.isShowing()){
+                        
                     }
-                    gridVBox.getChildren().remove(grid);
+                    
+                    
                     return;
                 }
 
@@ -332,6 +335,7 @@ public class AddTableDialog implements Dialogs {
                         box.setDisable(false);
                     }
                     aiBox.setDisable(true);
+                    boxs.setDisable(false);
                     aiBox.setSelected(false);
                     field.setAutoIncrement(false);
                 } else {
@@ -432,23 +436,25 @@ public class AddTableDialog implements Dialogs {
         for (int i = 0; i < fieldCount; i++) {
             GridPane pane = (GridPane) scene.lookup("#field_" + (i + 1));
             if (pane != null) {
-                if (pane.getChildren().contains(addFieldButton)) {
-                    pane.getChildren().remove(addFieldButton);
+                if (pane.getChildren().contains(addFieldBox)) {
+                    pane.getChildren().remove(addFieldBox);
                     pane.getRowConstraints().remove(1);
                 }
             }
         }
-        grid.getRowConstraints().add(new RowConstraints(30));
-
         fields.add(field);
-        GridPane.setMargin(grid, new Insets(30, 30, 30, 30));
-        grid.add(addFieldButton(), 0, 1);
         gridVBox.getChildren().add(grid);
+        addFieldButton();
 
     }
-    private static Button addFieldButton(){
+    private static void addFieldButton(){
+        HBox btnBox = new HBox();
+        btnBox.setPadding(new Insets(0,0,0,18));
         Button button = new Button("+");
-        addFieldButton = button;
+        if(addFieldBox != null){
+            gridVBox.getChildren().remove(addFieldBox);
+        }
+        addFieldBox = btnBox;
         button.setOnAction(new EventHandler<ActionEvent>() {
 
             @Override
@@ -457,8 +463,9 @@ public class AddTableDialog implements Dialogs {
             }
 
         });
+        btnBox.getChildren().add(button);
 
-        return button;
+        gridVBox.getChildren().add(btnBox);
     }
     public static Scene getScene() {
         return scene;

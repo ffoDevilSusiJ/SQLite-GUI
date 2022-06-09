@@ -1,9 +1,7 @@
 package com.dialogs;
 
 import java.io.IOException;
-import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
 
 import com.MainPage;
 import com.dbase.DataBaseField;
@@ -16,15 +14,16 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
-import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.RowConstraints;
@@ -37,6 +36,17 @@ public class AddFieldDialog implements Dialogs {
     static VBox pane;
     static Stage stage;
     static DataBaseField field;
+
+    static TextField fieldNameTextField;
+    static ComboBox comboBox;
+
+    static boolean hasType = false;
+    static boolean hasTableName = false;
+    static boolean hasFieldName = false;
+    static boolean hasPrimaryKey = false;
+    static boolean hasNoRepeatFieldName = false;
+    static boolean hasIntegerOnAutoincrement = false;
+
     @Override
     public void display() throws ClassNotFoundException, SQLException, IOException {
         scene = new Scene(Dialogs.loadFXML("add_item_dialog"), 0, 150);
@@ -51,8 +61,6 @@ public class AddFieldDialog implements Dialogs {
         addField();
         addButtons();
 
-
-        
         stage.setWidth(600);
         stage.setHeight(100);
         stage.setTitle("Add new item");
@@ -73,13 +81,52 @@ public class AddFieldDialog implements Dialogs {
 
             @Override
             public void handle(ActionEvent arg0) {
-                try {
-                    DataBaseHandler.addField(currentTable, field);
-                    MainPage.buildData(currentTable);
-                } catch (ClassNotFoundException | SQLException e) {
-                    e.printStackTrace();
+
+                for (String columnName : MainPage.columnNames) {
+                    if (columnName.equals(fieldNameTextField.getText())) {
+                        hasNoRepeatFieldName = false;
+                        if (!fieldNameTextField.getStyleClass().contains("error-box"))
+                            fieldNameTextField.getStyleClass().add("error-box");
+                    }
                 }
-                stage.close();
+
+                if (comboBox.getValue() == null) {
+                    hasType = false;
+                    if (!comboBox.getStyleClass().contains("error-box"))
+                        comboBox.getStyleClass().add("error-box");
+                }
+
+                if (fieldNameTextField.getText() == "") {
+                    hasFieldName = false;
+                    if (!fieldNameTextField.getStyleClass().contains("error-box"))
+                        fieldNameTextField.getStyleClass().add("error-box");
+                }
+
+                if (hasType && hasFieldName && hasNoRepeatFieldName) {
+                    try {
+                        DataBaseHandler.addField(currentTable, field);
+                    } catch (ClassNotFoundException | SQLException e) {
+                        e.printStackTrace();
+                    }
+                    stage.close();
+                } else {
+                    if (!hasType || !hasFieldName || !hasNoRepeatFieldName) {
+                        String error = "";
+
+                        if (!hasType) {
+                            error = error + "The field type cannot be empty\n";
+                        }
+                        if (!hasFieldName) {
+                            error = error + "The field name cannot be empty\n";
+                        }
+                        if (!hasNoRepeatFieldName) {
+                            error = error + "Field names should not be duplicated\n";
+                        }
+                        Alert alert = new Alert(AlertType.ERROR, error,
+                                ButtonType.OK);
+                        alert.showAndWait();
+                    }
+                }
             }
 
         });
@@ -101,16 +148,18 @@ public class AddFieldDialog implements Dialogs {
     private static void addField() {
         field = new DataBaseField();
         GridPane grid = new GridPane();
+
         grid.getColumnConstraints().add(new ColumnConstraints(110));
         grid.getColumnConstraints().add(new ColumnConstraints(150));
-        int attr = 9;
+        int attr = 7;
         for (int i = 0; i < attr; i++) {
             grid.getColumnConstraints().add(new ColumnConstraints(30));
         }
-        
+        grid.getRowConstraints().add(new RowConstraints(30));
         grid.setAlignment(Pos.CENTER);
 
         TextField fieldName = new TextField();
+        fieldNameTextField = fieldName;
         fieldName.setPromptText("Field name");
         fieldName.setMaxWidth(80);
         fieldName.textProperty().addListener(new ChangeListener<String>() {
@@ -118,6 +167,9 @@ public class AddFieldDialog implements Dialogs {
             @Override
             public void changed(ObservableValue<? extends String> arg0, String arg1, String newValue) {
                 field.setName(newValue);
+                fieldName.getStyleClass().remove("error-box");
+                hasFieldName = true;
+                hasNoRepeatFieldName = true;
             }
 
         });
@@ -126,53 +178,29 @@ public class AddFieldDialog implements Dialogs {
 
         ObservableList<String> types = FXCollections.observableArrayList(DataBaseFieldTypes.getNames());
         ComboBox<String> boxs = new ComboBox<>(types);
+        comboBox = boxs;
         boxs.setOnAction(new EventHandler<ActionEvent>() {
 
             @Override
             public void handle(ActionEvent arg0) {
                 field.setType(boxs.getSelectionModel().getSelectedItem());
+                boxs.getStyleClass().remove("error-box");
+                hasType = true;
                 System.out.println(field.getType());
             }
 
         });
         grid.add(boxs, 1, 0);
 
-        grid.add(new Label("PK"), 2, 0);
-        CheckBox pkBox = new CheckBox();
-        pkBox.setFocusTraversable(false);
-        pkBox.setOnAction(new EventHandler<ActionEvent>() {
-
-            @Override
-            public void handle(ActionEvent arg0) {
-                if (field.isPrimaryKey())
-                    field.setPrimaryKey(false);
-                else
-                    field.setPrimaryKey(true);
-            }
-
-        });
-
-        grid.add(pkBox, 3, 0);
-
-        grid.add(new Label("AI"), 4, 0);
         CheckBox aiBox = new CheckBox();
-        aiBox.setFocusTraversable(false);
-        aiBox.setOnAction(new EventHandler<ActionEvent>() {
-
-            @Override
-            public void handle(ActionEvent arg0) {
-                if (field.isAutoIncrement())
-                    field.setAutoIncrement(false);
-                else
-                    field.setAutoIncrement(true);
-
-            }
-
-        });
-        grid.add(aiBox, 5, 0);
-
-        grid.add(new Label("NN"), 6, 0);
+        aiBox.setDisable(true);
+        CheckBox pkBox = new CheckBox();
+        if (hasPrimaryKey)
+            pkBox.setDisable(true);
         CheckBox nnBox = new CheckBox();
+
+        // Not Null
+        grid.add(new Label("NN"), 2, 0);
         nnBox.setFocusTraversable(false);
         nnBox.setOnAction(new EventHandler<ActionEvent>() {
 
@@ -186,9 +214,9 @@ public class AddFieldDialog implements Dialogs {
             }
 
         });
-        grid.add(nnBox, 7, 0);
+        grid.add(nnBox, 3, 0);
 
-        grid.add(new Label("DF"), 8, 0);
+        grid.add(new Label("DF"), 4, 0);
         CheckBox dfBox = new CheckBox();
         dfBox.setFocusTraversable(false);
         dfBox.setOnAction(new EventHandler<ActionEvent>() {
@@ -202,9 +230,9 @@ public class AddFieldDialog implements Dialogs {
             }
 
         });
-        grid.add(dfBox, 9, 0);
+        grid.add(dfBox, 5, 0);
 
-        grid.add(new Label("UN"), 10, 0);
+        grid.add(new Label("UN"), 6, 0);
         CheckBox unBox = new CheckBox();
         unBox.setFocusTraversable(false);
         unBox.setOnAction(new EventHandler<ActionEvent>() {
@@ -218,7 +246,7 @@ public class AddFieldDialog implements Dialogs {
             }
 
         });
-        grid.add(unBox, 11, 0);
+        grid.add(unBox, 7, 0);
 
         TextField textField = new TextField();
         textField.textProperty().addListener(new ChangeListener<String>() {
@@ -229,8 +257,6 @@ public class AddFieldDialog implements Dialogs {
 
             }
         });
-        grid.getRowConstraints().add(new RowConstraints(30));
-        GridPane.setMargin(grid, new Insets(30, 30, 30, 30));
         pane.getChildren().add(grid);
 
     }

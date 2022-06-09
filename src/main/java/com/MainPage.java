@@ -387,6 +387,7 @@ public class MainPage {
 
         // FINALLY ADDED TO TableView
         view.setItems(data);
+        view.setEditable(true);
         resultSet.getStatement().getConnection().close();
         resultSet.getStatement().close();
         primaryKeys.getStatement().getConnection().close();

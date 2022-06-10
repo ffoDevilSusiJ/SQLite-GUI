@@ -4,7 +4,7 @@ import javafx.collections.ObservableList;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TextField;
 
-public class PrimaryKeyCell extends TableCell<ObservableList, String>{
+public class PrimaryKeyCell extends TableCell<ObservableList<Object>, String>{
     
     private TextField textField;
     String startValue = null;
@@ -23,6 +23,8 @@ public class PrimaryKeyCell extends TableCell<ObservableList, String>{
                 setText(null);
                 setGraphic(textField);
             } else {
+                getStyleClass().add("oneCell");
+                
                 setText(getString());
                 setGraphic(null);
             }

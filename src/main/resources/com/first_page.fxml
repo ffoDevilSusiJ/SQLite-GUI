@@ -14,21 +14,24 @@
               <menus>
                 <Menu mnemonicParsing="false" text="File">
                   <items>
-                        <MenuItem id="file_open" fx:id="file_open" mnemonicParsing="false" text="Open" />
+                        <MenuItem id="file_add" fx:id="file_add" mnemonicParsing="false" text="New SQLite file" />
+                        <MenuItem id="file_open" fx:id="file_open" mnemonicParsing="false" text="Open SQLite file" />
                         <MenuItem id="file_save" fx:id="file_save" mnemonicParsing="false" text="Save" />
                         <MenuItem id="file_exit" fx:id="file_exit" mnemonicParsing="false" text="Exit" />
                   </items>
                 </Menu>
                 <Menu mnemonicParsing="false" text="Table">
                   <items>
-                        <MenuItem mnemonicParsing="false" text="Create Table" />
-                        <MenuItem mnemonicParsing="false" text="Delete Table" />
+                        <MenuItem id="table_add" fx:id="table_add"  mnemonicParsing="false" text="Create Table" />
+                        <MenuItem id="table_remove" fx:id="table_remove"  mnemonicParsing="false" text="Delete Table" />
+                        <MenuItem id="table_addColumn" fx:id="table_addColumn"  mnemonicParsing="false" text="Add Column" />
+                        <MenuItem id="table_removeColumn" fx:id="table_removeColumn"  mnemonicParsing="false" text="Remove Column" />
                   </items>
                 </Menu>
                 <Menu mnemonicParsing="false" text="Item">
                   <items>
                     <MenuItem id="item_add" fx:id="item_add"  mnemonicParsing="false" text="New Item" />
-                        <MenuItem mnemonicParsing="false" text="Delete Item" />
+                        <MenuItem id="item_remove" fx:id="item_remove" mnemonicParsing="false" text="Delete Item" />
                   </items>
                 </Menu>
               </menus>

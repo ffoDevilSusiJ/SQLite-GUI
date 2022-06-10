@@ -47,13 +47,12 @@ public class App extends Application {
             }
 
         });
+        stage.setResizable(false);
         stage.setTitle("SQLite GUI");
         MainPage.showStartTipLabel();
         AnchorPane.setRightAnchor((HBox) scene.lookup("#topBox"), 10.0);
         System.out.println();
-        MainPage.FilePicker(fxmlLoader);
-        MainPage.ItemAdder(fxmlLoader);
-        MainPage.SaveAction(fxmlLoader);
+        MainPage.MenuActions(fxmlLoader);
 
     }
 

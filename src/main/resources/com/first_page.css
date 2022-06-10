@@ -19,7 +19,12 @@
 #items_row{
 
 }
-
+.oneCell  {  
+    -fx-control-inner-background: #41414157;
+    fx-table-cell-border-color: #5c4b00;
+    -fx-background-color: -fx-table-cell-border-color, -fx-control-inner-background;
+    -fx-background-insets: 0, 0 0 1 0;
+}
 .active_table{
     -fx-text-fill: red;
 }
@@ -28,4 +33,10 @@
 }
 .start_label{
     -fx-text-fill: rgba(124, 124, 124, 0.63);
+}
+
+.error-box{
+    -fx-border-color: red;
+    -fx-border-width: 1 1 1 1;
+    -fx-border-radius: 0.5;
 }

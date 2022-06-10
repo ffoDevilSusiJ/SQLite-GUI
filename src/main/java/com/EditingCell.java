@@ -9,30 +9,28 @@ import javafx.beans.value.ObservableValue;
 import javafx.collections.ObservableList;
 import javafx.event.EventHandler;
 import javafx.scene.control.TableCell;
-import javafx.scene.control.TableColumn;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
+import javafx.scene.input.MouseEvent;
 
-public class EditingCell extends TableCell<ObservableList, String> {
+public class EditingCell extends TableCell<ObservableList<Object>, String> {
     private TextField textField;
     String startValue = null;
+    static EditingCell editCell;
+    EditingCell currentCell = this;
 
     public EditingCell() {
+
     }
 
     @Override
     public void startEdit() {
-        System.out.println(MainPage.data.get(0).get(0));
+        System.out.println("gg");
         startValue = this.getText();
         super.startEdit();
         if (textField == null) {
-
-            try {
-                createTextField();
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+            createTextField();
         }
         setText(null);
         setGraphic(textField);
@@ -44,7 +42,6 @@ public class EditingCell extends TableCell<ObservableList, String> {
         super.cancelEdit();
         setText((String) getItem());
         setGraphic(null);
-        System.out.println("Отмена");
     }
 
     @Override
@@ -67,7 +64,7 @@ public class EditingCell extends TableCell<ObservableList, String> {
         }
     }
 
-    private void createTextField() throws SQLException {
+    private void createTextField() {
         textField = new TextField(getString());
         textField.setMinWidth(this.getWidth() - this.getGraphicTextGap() * 2);
         textField.setOnKeyPressed(new EventHandler<KeyEvent>() {
@@ -78,24 +75,15 @@ public class EditingCell extends TableCell<ObservableList, String> {
 
                     String field = null;
                     int row = 0;
-                    i: for (int i = 0; i < MainPage.getTableView().getColumns().size(); i++) {
-                        for (int j = 0; j < MainPage.data.size(); j++) {
-                            for (int k = 0; k < MainPage.row.size(); k++) {
-                                if (MainPage.data.get(j).get(k).equals(startValue)) {
-                                    field = ((TableColumn) (MainPage.getTableView().getColumns().get(k)))
-                                            .getText();
-                                    row = j + 1;
-                                    System.out.println(field + " Начальное значение " + startValue);
-                                    break i;
-                                }
-                            }
-                        }
-                    }
+
+                    field = MainPage.getTableView().getFocusModel().getFocusedCell().getTableColumn().getText();
+                    row = MainPage.getTableView().getFocusModel().getFocusedCell().getRow() + 1;
+                    System.out.println(field + " Начальное значение " + startValue);
 
                     try {
                         DataBaseHandler.updateValue(MainPage.getCurrentTable(), field, row,
                                 textField.getText());
-                    } catch (SQLException e) {
+                    } catch (SQLException | ClassNotFoundException e) {
 
                         e.printStackTrace();
                     }
@@ -103,8 +91,12 @@ public class EditingCell extends TableCell<ObservableList, String> {
                     for (int i = 0; i < MainPage.data.size(); i++) {
                         // System.out.println(startValue);
                         for (int j = 0; j < MainPage.row.size(); j++) {
-                            if (MainPage.data.get(i).get(j).equals(startValue)) {
+                            if (MainPage.data.get(i).get(j) != null) {
+                                if (MainPage.data.get(i).get(j).equals(startValue)) {
 
+                                    MainPage.data.get(i).set(j, textField.getText());
+                                }
+                            } else {
                                 MainPage.data.get(i).set(j, textField.getText());
                             }
                         }

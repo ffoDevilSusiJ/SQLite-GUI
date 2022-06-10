@@ -76,7 +76,7 @@ public class AddItemDialog implements Dialogs {
                 try {
                     if (!primaryKeyRepeat) {
                         
-                        for (int i = 0; i < MainPage.columnNames.size(); i++) {
+                        for (int i = 0; i < MainPage.getColumnNames().size(); i++) {
                             TextField textField = (TextField) scene.lookup("#text-field_" + i);
                             values.add(textField.getText());
                         }
@@ -109,9 +109,9 @@ public class AddItemDialog implements Dialogs {
         buttons.add(submit, 0, 0);
         buttons.add(cancel, 1, 0);
 
-        next: for (int i = 0; i < MainPage.columnNames.size(); i++) {
+        next: for (int i = 0; i < MainPage.getColumnNames().size(); i++) {
 
-            if (MainPage.columnNames.get(i)
+            if (MainPage.getColumnNames().get(i)
                     .equals(primField)
                     && !(DataBaseHandler.getAutoincrement(MainPage.getCurrentTable(), (i + 1)))) {
                 GridPane grid = new GridPane();
@@ -122,7 +122,7 @@ public class AddItemDialog implements Dialogs {
                 grid.setAlignment(Pos.CENTER);
                 GridPane.setMargin(grid, new Insets(0, 0, 30, 0));
                 grid.getRowConstraints().add(new RowConstraints(30));
-                grid.add(new Label(MainPage.columnNames.get(i)), 0, 0);
+                grid.add(new Label(MainPage.getColumnNames().get(i)), 0, 0);
                 TextField textField = new TextField();
                 textField.textProperty().addListener(new ChangeListener<String>() {
 
@@ -132,7 +132,7 @@ public class AddItemDialog implements Dialogs {
                         grid.getChildren().remove(tip);
                         for (int i = 0; i < MainPage.data.size(); i++) {
                             if (newValue.equals(MainPage.data.get(i)
-                                    .get(MainPage.columnNames.indexOf(primField)))) {
+                                    .get(MainPage.getColumnNames().indexOf(primField)))) {
                                 grid.add(tip, 2, 0);
                                 primaryKeyRepeat = true;
                                 break;
@@ -146,7 +146,7 @@ public class AddItemDialog implements Dialogs {
                 grid.add(textField, 1, 0);
                 gridVBox.getChildren().add(grid);
                 row++;
-            } else if (!MainPage.columnNames.get(i)
+            } else if (!MainPage.getColumnNames().get(i)
                     .equals(primField)) {
                 GridPane grid = new GridPane();
                 grid.getColumnConstraints().add(new ColumnConstraints(80));
@@ -155,7 +155,7 @@ public class AddItemDialog implements Dialogs {
                 grid.setAlignment(Pos.CENTER);
                 GridPane.setMargin(grid, new Insets(0, 0, 30, 0));
                 grid.getRowConstraints().add(new RowConstraints(30));
-                grid.add(new Label(MainPage.columnNames.get(i)), 0, 0);
+                grid.add(new Label(MainPage.getColumnNames().get(i)), 0, 0);
                 TextField textField = new TextField();
                 textField.setId("text-field_" + i);
                 grid.add(textField, 1, 0);
@@ -167,7 +167,7 @@ public class AddItemDialog implements Dialogs {
                 textField.setVisible(false);
                 textField.setManaged(false);
                 pane.getChildren().add(textField);
-                int column = MainPage.columnNames.indexOf(primField);
+                int column = MainPage.getColumnNames().indexOf(primField);
                 ArrayList<Integer> idList = new ArrayList<>();
                 if(MainPage.data.size() > 0){
                 int max = Integer.parseInt(MainPage.data.get( MainPage.data.size() - 1).get(column));

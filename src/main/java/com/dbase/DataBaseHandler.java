@@ -18,8 +18,8 @@ import javafx.collections.ObservableList;
 
 public class DataBaseHandler {
 
-	
 	public static String connectionString;
+
 	protected static Connection getDBConnection() throws ClassNotFoundException, SQLException {
 		Class.forName("org.sqlite.JDBC");
 		Connection connection = DriverManager.getConnection(connectionString);
@@ -54,7 +54,8 @@ public class DataBaseHandler {
 		return rs;
 	}
 
-	public static void updateValue(String table, String field, int rowid, String value) throws SQLException, ClassNotFoundException {
+	public static void updateValue(String table, String field, int rowid, String value)
+			throws SQLException, ClassNotFoundException {
 		String query = "UPDATE " + table + " SET " + field + " = ?" + " Where " + "rowid" + " = ?" + ";";
 		System.out.println(query);
 		PreparedStatement statement = getDBConnection().prepareStatement(query);
@@ -76,19 +77,19 @@ public class DataBaseHandler {
 		return primaryKeys;
 	}
 
-	// public static void formField(String table) throws ClassNotFoundException, SQLException{
-	// 	ArrayList<DataBaseField> f = new ArrayList<>();
-	// 	DatabaseMetaData meta = getDBConnection().getMetaData();
-	// 	ResultSet columns = meta.getColumns(null, null, table, "%");
-	// 	while(columns.next()){
-	// 		DataBaseField field = new DataBaseField();
-	// 		System.out.println(columns.getString("COLUMN_NAME"));
-	// 		columns.next();
-	// 	}
-		
+	// public static void formField(String table) throws ClassNotFoundException,
+	// SQLException{
+	// ArrayList<DataBaseField> f = new ArrayList<>();
+	// DatabaseMetaData meta = getDBConnection().getMetaData();
+	// ResultSet columns = meta.getColumns(null, null, table, "%");
+	// while(columns.next()){
+	// DataBaseField field = new DataBaseField();
+	// System.out.println(columns.getString("COLUMN_NAME"));
+	// columns.next();
+	// }
 
-	// 	ObservableList<DataBaseField> fields = FXCollections.observableList(f);
-	// 	System.out.println();
+	// ObservableList<DataBaseField> fields = FXCollections.observableList(f);
+	// System.out.println();
 	// }
 
 	public static boolean getAutoincrement(String table, int column) throws SQLException, ClassNotFoundException {
@@ -115,14 +116,14 @@ public class DataBaseHandler {
 		PreparedStatement statement = getDBConnection().prepareStatement(query);
 		ResultSet primaryKeys = getPrimaryKeys(MainPage.getCurrentTable());
 		for (int i = 0; i < fields.size(); i++) {
-			if(!primaryKeys.getString("COLUMN_NAME").equals(fields.get(i))){
+			if (!primaryKeys.getString("COLUMN_NAME").equals(fields.get(i))) {
 				if (rs.getMetaData().getColumnType((i + 1)) == java.sql.Types.INTEGER) {
 					statement.setInt((i + 1), Integer.valueOf(fields.get(i)));
 				}
 				if (rs.getMetaData().getColumnType((i + 1)) == java.sql.Types.VARCHAR) {
 					statement.setString((i + 1), fields.get(i));
 				}
-			} 
+			}
 		}
 		primaryKeys.getStatement().getConnection().close();
 		rs.getStatement().getConnection().close();
@@ -131,7 +132,8 @@ public class DataBaseHandler {
 		statement.close();
 	}
 
-	public static void removeItem(String table, String primField, String value) throws SQLException, ClassNotFoundException {
+	public static void removeItem(String table, String primField, String value)
+			throws SQLException, ClassNotFoundException {
 		String query = "DELETE FROM " + table + " WHERE " + primField + " = " + value + ";";
 		PreparedStatement statement = getDBConnection().prepareStatement(query);
 		statement.executeUpdate();
@@ -139,35 +141,35 @@ public class DataBaseHandler {
 		statement.close();
 	}
 
-	
 	public static void removeTable(String table) throws SQLException, ClassNotFoundException {
-		String query = "DROP TABLE IF EXISTS "+ table + ";";
+		String query = "DROP TABLE IF EXISTS " + table + ";";
 		Statement statement = getDBConnection().createStatement();
 		statement.executeUpdate(query);
 		statement.getConnection().close();
 		statement.close();
 	}
 
-	public static void createTable(String table, ArrayList<DataBaseField> fields) throws SQLException, ClassNotFoundException {
+	public static void createTable(String table, ArrayList<DataBaseField> fields)
+			throws SQLException, ClassNotFoundException {
 		Statement statement = getDBConnection().createStatement();
 		String query = "CREATE TABLE " + table + " (";
-		for(int i = 0; i < fields.size(); i++){
+		for (int i = 0; i < fields.size(); i++) {
 			DataBaseField field = fields.get(i);
 			query = query + field.getName() + " " + field.getType() + " ";
-			if(field.isPrimaryKey()){
+			if (field.isPrimaryKey()) {
 				query = query + "PRIMARY KEY ";
 			}
-			if(field.isAutoIncrement){
+			if (field.isAutoIncrement) {
 				query = query + "AUTOINCREMENT ";
 			}
-			if(field.isNOTNULL){
+			if (field.isNOTNULL) {
 				query = query + "NOT NULL ";
 			}
-			if(field.isUNIQUE){
+			if (field.isUNIQUE) {
 				query = query + "UNIQUE ";
 			}
-			if(i != fields.size() - 1)
-			query = query + ",";
+			if (i != fields.size() - 1)
+				query = query + ",";
 		}
 		query = query + ");";
 		System.out.println(query);
@@ -191,9 +193,17 @@ public class DataBaseHandler {
 			if(field.isUNIQUE){
 				query = query + "UNIQUE ";
 			}
-
+			
 		query = query + ";";
 		System.out.println(query);
+		statement.executeUpdate(query);
+		statement.getConnection().close();
+	}
+
+	public static void removeField(String table, String fieldName) throws SQLException, ClassNotFoundException {
+		Statement statement = getDBConnection().createStatement();
+		String query = "ALTER TABLE " + table + " DROP COLUMN ";
+		query = query + fieldName;
 		statement.executeUpdate(query);
 		statement.getConnection().close();
 	}

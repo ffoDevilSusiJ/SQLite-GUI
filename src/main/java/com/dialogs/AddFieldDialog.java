@@ -82,7 +82,7 @@ public class AddFieldDialog implements Dialogs {
             @Override
             public void handle(ActionEvent arg0) {
 
-                for (String columnName : MainPage.columnNames) {
+                for (String columnName : MainPage.getColumnNames()) {
                     if (columnName.equals(fieldNameTextField.getText())) {
                         hasNoRepeatFieldName = false;
                         if (!fieldNameTextField.getStyleClass().contains("error-box"))
@@ -105,6 +105,7 @@ public class AddFieldDialog implements Dialogs {
                 if (hasType && hasFieldName && hasNoRepeatFieldName) {
                     try {
                         DataBaseHandler.addField(currentTable, field);
+                        MainPage.buildData(currentTable);
                     } catch (ClassNotFoundException | SQLException e) {
                         e.printStackTrace();
                     }

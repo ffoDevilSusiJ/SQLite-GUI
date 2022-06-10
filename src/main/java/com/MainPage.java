@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.dbase.DataBaseHandler;
+import com.dialogs.AddFieldDialog;
 import com.dialogs.AddItemDialog;
 import com.dialogs.AddTableDialog;
 
@@ -62,13 +63,53 @@ public class MainPage {
         gridContainer.setAlignment(Pos.TOP_LEFT);
     }
 
+    // show start tip label
+    static EventHandler<MouseEvent> addTableEvent;
+
+    public static void showNoTablesTip() {
+        if (getTableNames().size() < 1) {
+            VBox gridContainer = (VBox) scene.lookup("#gridContainer");
+            gridContainer.addEventFilter(MouseEvent.MOUSE_CLICKED, addTableEvent = new EventHandler<MouseEvent>() {
+
+                @Override
+                public void handle(MouseEvent arg0) {
+                    try {
+                        new AddTableDialog().display();
+                        showTables();
+                        hideNoTablesTip();
+                    } catch (ClassNotFoundException | SQLException | IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+            });
+            gridContainer.setAlignment(Pos.CENTER);
+            Label label = new Label("To add a table, use (Table-> Create Table) or click here");
+            label.getStyleClass().add("start_label");
+            gridContainer.getChildren().add(label);
+        }
+    }
+
+    // hide start tip label
+    public static void hideNoTablesTip() {
+        if (getTableNames().size() > 0) {
+            VBox gridContainer = (VBox) scene.lookup("#gridContainer");
+            gridContainer.removeEventFilter(MouseEvent.MOUSE_CLICKED, addTableEvent);
+            gridContainer.getChildren().clear();
+            gridContainer.setAlignment(Pos.TOP_LEFT);
+        }
+    }
+
     public static void MenuActions(FXMLLoader fxmlLoader) {
         SaveAction(fxmlLoader);
         FilePicker(fxmlLoader);
+        FileAdder(fxmlLoader);
         ItemAdder(fxmlLoader);
         ItemRemover(fxmlLoader);
         TableRemover(fxmlLoader);
         TableAdder(fxmlLoader);
+        FieldAdder(fxmlLoader);
+        FieldRemover(fxmlLoader);
     }
 
     // Add Table
@@ -80,6 +121,7 @@ public class MainPage {
                 try {
                     table_Dialog.display();
                     showTables();
+                    hideNoTablesTip();
                 } catch (ClassNotFoundException | SQLException | IOException e1) {
                     e1.printStackTrace();
                 }
@@ -96,6 +138,42 @@ public class MainPage {
                 try {
                     DataBaseHandler.removeTable(getCurrentTable());
                     showTables();
+                    showNoTablesTip();
+                } catch (ClassNotFoundException | SQLException e1) {
+                    e1.printStackTrace();
+                }
+
+            }
+        });
+    }
+
+    // Add Field to Table
+    private static void FieldAdder(FXMLLoader fxmlLoader) {
+
+        MenuItem addFieldMenu = (MenuItem) fxmlLoader.getNamespace().get("table_addColumn");
+        addFieldMenu.setOnAction(new EventHandler<ActionEvent>() {
+            public void handle(final ActionEvent e) {
+                try {
+                    new AddFieldDialog().display();
+                    MainPage.buildData(MainPage.getCurrentTable());
+                } catch (ClassNotFoundException | SQLException | IOException e1) {
+                    e1.printStackTrace();
+                }
+
+            }
+        });
+    }
+
+    // Remove Field from Table
+    private static void FieldRemover(FXMLLoader fxmlLoader) {
+
+        MenuItem removeFieldMenu = (MenuItem) fxmlLoader.getNamespace().get("table_removeColumn");
+        removeFieldMenu.setOnAction(new EventHandler<ActionEvent>() {
+            public void handle(final ActionEvent e) {
+                try {
+                    DataBaseHandler.removeField(getCurrentTable(),
+                            getColumnNames().get(getTableView().getFocusModel().getFocusedCell().getColumn()));
+                    MainPage.buildData(MainPage.getCurrentTable());
                 } catch (ClassNotFoundException | SQLException e1) {
                     e1.printStackTrace();
                 }
@@ -106,13 +184,13 @@ public class MainPage {
 
     // Add Item
     private static void ItemAdder(FXMLLoader fxmlLoader) {
-        
+
         MenuItem addItemMenu = (MenuItem) fxmlLoader.getNamespace().get("item_add");
         addItemMenu.setOnAction(new EventHandler<ActionEvent>() {
             public void handle(final ActionEvent e) {
                 AddItemDialog item_Dialog = new AddItemDialog();
                 try {
-                    //DataBaseHandler.formField(getCurrentTable());
+                    // DataBaseHandler.formField(getCurrentTable());
                     item_Dialog.display();
                     MainPage.buildData(MainPage.getCurrentTable());
                 } catch (ClassNotFoundException | SQLException | IOException e1) {
@@ -188,6 +266,44 @@ public class MainPage {
         });
     }
 
+    // Add File
+    private static void FileAdder(FXMLLoader fxmlLoader) {
+
+        MenuItem addFileItem = (MenuItem) fxmlLoader.getNamespace().get("file_add");
+        addFileItem.setOnAction(new EventHandler<ActionEvent>() {
+            public void handle(final ActionEvent e) {
+                FileChooser fileChooser = new FileChooser();
+                FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("DataBase Files (*.db)",
+                        "*.db");
+                fileChooser.getExtensionFilters().add(extFilter);
+
+                fileChooser.setTitle("New SQLite file");
+                file = fileChooser.showSaveDialog(stage);
+                if (file != null) {
+
+                    try {
+                        file.createNewFile();
+                        System.out.println();
+                        Files.deleteIfExists(Paths.get("C:\\Windows\\TEMP\\" + file.getName() + "_temp.db"));
+                        file_temp = new File("C:\\Windows\\TEMP\\" + file.getName() + "_temp.db");
+                        fileCopy = Files.copy(file.toPath(), file_temp.toPath(),
+                                (CopyOption) StandardCopyOption.REPLACE_EXISTING);
+
+                        hideStartTipLabel();
+                        DataBaseHandler.openSQLFile(fileCopy.toString().replace("\\", "//"));
+
+                        Cleaner.newTableList();
+                        showTables();
+                        showNoTablesTip();
+                    } catch (IOException | ClassNotFoundException | SQLException e1) {
+                        e1.printStackTrace();
+                    }
+
+                }
+            }
+        });
+    }
+
     public static void openProcess() {
         final FileChooser fileChooser = new FileChooser();
         FileChooser.ExtensionFilter extFilter = new FileChooser.ExtensionFilter("DataBase Files (*.db)",
@@ -195,25 +311,22 @@ public class MainPage {
         fileChooser.getExtensionFilters().add(extFilter);
 
         file = fileChooser.showOpenDialog(stage);
-        filePath = file.toPath().toString();
-
-        try {
-            Files.deleteIfExists(Paths.get("C:\\Windows\\TEMP\\" + file.getName() + "_temp.db"));
-            file_temp = new File("C:\\Windows\\TEMP\\" + file.getName() + "_temp.db");
-            fileCopy = Files.copy(file.toPath(), file_temp.toPath(),
-                    (CopyOption) StandardCopyOption.REPLACE_EXISTING);
-        } catch (IOException e1) {
-            e1.printStackTrace();
-        }
 
         if (file != null) {
             try {
+                Files.deleteIfExists(Paths.get("C:\\Windows\\TEMP\\" + file.getName() + "_temp.db"));
+                file_temp = new File("C:\\Windows\\TEMP\\" + file.getName() + "_temp.db");
+                fileCopy = Files.copy(file.toPath(), file_temp.toPath(),
+                        (CopyOption) StandardCopyOption.REPLACE_EXISTING);
+
                 hideStartTipLabel();
                 DataBaseHandler.openSQLFile(fileCopy.toString().replace("\\", "//"));
 
                 Cleaner.newTableList();
                 showTables();
-            } catch (SQLException | ClassNotFoundException ex2) {
+                showNoTablesTip();
+
+            } catch (SQLException | ClassNotFoundException | IOException ex2) {
                 ex2.printStackTrace();
             }
         }
@@ -243,11 +356,8 @@ public class MainPage {
                         saveProcess();
                     }
                 }
-
             }
-
         });
-
     }
 
     // Create List of Items grid from active table
@@ -262,14 +372,17 @@ public class MainPage {
     }
 
     // List of tables on the right
-    public static void showTables() throws ClassNotFoundException, SQLException {
+    static ArrayList<String> tableNames = new ArrayList<>();
 
+    public static void showTables() throws ClassNotFoundException, SQLException {
+        tableNames.clear();
         VBox tables = (VBox) scene.lookup("#ListofTables");
         Cleaner.newTableList();
         ResultSet rs = DataBaseHandler.getTablesSet();
         ArrayList<Label> tablesList = new ArrayList<Label>();
         while (rs.next()) {
             if (!rs.getString(1).equals("sqlite_sequence")) {
+                tableNames.add(rs.getString(1));
                 Label label = new Label(rs.getString(1));
                 label.setId("table_id");
                 label.setPrefHeight(40);
@@ -302,7 +415,7 @@ public class MainPage {
     }
 
     // List of items from the active table
-    public static ArrayList<String> columnNames = new ArrayList<>();
+    private static ArrayList<String> columnNames = new ArrayList<>();
     public static ObservableList<String> row = null;
     public static ObservableList<ObservableList<String>> data = null;
 
@@ -316,60 +429,59 @@ public class MainPage {
         data = FXCollections.observableArrayList();
         ResultSet resultSet = DataBaseHandler.getTableItem(table);
         for (int i = 0; i < resultSet.getMetaData().getColumnCount() + 1; i++) {
-            if(i <  resultSet.getMetaData().getColumnCount()){
-            final int j = i;
-            TableColumn col = new TableColumn(resultSet.getMetaData().getColumnName(i + 1));
-            col.setCellValueFactory(
-                    (Callback<TableColumn.CellDataFeatures<ObservableList, String>, ObservableValue<String>>) param -> {
-                        if (param.getValue().get(j) != null) {
-                            return new SimpleStringProperty(param.getValue().get(j).toString());
-                        } else {
-                            return null;
-                        }
+            if (i < resultSet.getMetaData().getColumnCount()) {
+                final int j = i;
+                TableColumn col = new TableColumn(resultSet.getMetaData().getColumnName(i + 1));
+                col.setCellValueFactory(
+                        (Callback<TableColumn.CellDataFeatures<ObservableList, String>, ObservableValue<String>>) param -> {
+                            if (param.getValue().get(j) != null) {
+                                return new SimpleStringProperty(param.getValue().get(j).toString());
+                            } else {
+                                return null;
+                            }
 
-                    });
-            String primaryColumn;
-            try {
-                primaryColumn = primaryKeys.getString("COLUMN_NAME");
-            } catch (SQLException e) {
-                primaryColumn = "none";
-            }
+                        });
+                String primaryColumn;
+                try {
+                    primaryColumn = primaryKeys.getString("COLUMN_NAME");
+                } catch (SQLException e) {
+                    primaryColumn = "none";
+                }
 
-            if (!primaryColumn.equals(col.getText())) {
+                if (!primaryColumn.equals(col.getText())) {
 
-                col.setCellFactory(colomn -> {
-                    TableCell<ObservableList<Object>, String> cell = new EditingCell();
-                    return cell;
-                });
-            } else {
-                col.setCellFactory(colomn -> {
-                    TableCell<ObservableList<Object>, String> cell = new PrimaryKeyCell();
-
-                    return cell;
-                });
-            }
-
-
-            view.getColumns().addAll(col);
-            columnNames.add(col.getText());
-        } else {
-            TableColumn col = new TableColumn("");
-            final int j = i;
-            col.setCellValueFactory(
-                    (Callback<TableColumn.CellDataFeatures<ObservableList, String>, ObservableValue<String>>) param -> {
-                        if (param.getValue().get(j) != null) {
-                            return new SimpleStringProperty("");
-                        } else {
-                            return null;
-                        }
-
-                    });
                     col.setCellFactory(colomn -> {
-                        TableCell<ObservableList<Object>, String> cell = new AddColumnCell();
+                        TableCell<ObservableList<Object>, String> cell = new EditingCell();
                         return cell;
                     });
-                    view.getColumns().addAll(col);
-        }
+                } else {
+                    col.setCellFactory(colomn -> {
+                        TableCell<ObservableList<Object>, String> cell = new PrimaryKeyCell();
+
+                        return cell;
+                    });
+                }
+
+                view.getColumns().addAll(col);
+                columnNames.add(col.getText());
+            } else {
+                TableColumn col = new TableColumn("");
+                final int j = i;
+                col.setCellValueFactory(
+                        (Callback<TableColumn.CellDataFeatures<ObservableList, String>, ObservableValue<String>>) param -> {
+                            if (param.getValue().get(j) != null) {
+                                return new SimpleStringProperty("");
+                            } else {
+                                return null;
+                            }
+
+                        });
+                col.setCellFactory(colomn -> {
+                    TableCell<ObservableList<Object>, String> cell = new AddColumnCell();
+                    return cell;
+                });
+                view.getColumns().addAll(col);
+            }
         }
 
         while (resultSet.next()) {
@@ -392,10 +504,10 @@ public class MainPage {
         resultSet.getStatement().close();
         primaryKeys.getStatement().getConnection().close();
         primaryKeys.getStatement().close();
-       
+
     }
 
-    public List<String> getColumnNames() {
+    public static List<String> getColumnNames() {
         return columnNames;
     }
 
@@ -405,6 +517,10 @@ public class MainPage {
 
     public static String getCurrentTable() {
         return currentTable;
+    }
+
+    public static ArrayList<String> getTableNames() {
+        return tableNames;
     }
 
     public static TableView getTableView() {

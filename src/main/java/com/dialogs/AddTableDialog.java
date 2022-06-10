@@ -55,19 +55,24 @@ public class AddTableDialog implements Dialogs {
     static ArrayList<CheckBox> primaryKeyCheckBoxs;
     static ArrayList<CheckBox> autoincrementCheckBoxs;
 
-    static boolean hasType = false;
-    static boolean hasTableName = false;
-    static boolean hasFieldName = false;
-    static boolean hasPrimaryKey = false;
-    static boolean hasNoRepeatFieldName = false;
-    static boolean hasIntegerOnAutoincrement = false;
+    static boolean hasType;
+    static boolean hasTableName;
+    static boolean hasFieldName;
+    static boolean hasPrimaryKey;
+    static boolean hasNoRepeatFieldName;
+    static boolean hasIntegerOnAutoincrement;
 
     static VBox pane;
     static Stage stage;
 
     @Override
     public void display() throws ClassNotFoundException, SQLException, IOException {
-
+        hasType = false;
+        hasTableName = false;
+        hasFieldName = false;
+        hasPrimaryKey = false;
+        hasNoRepeatFieldName = false;
+        hasIntegerOnAutoincrement = false;
         fieldCount = 0;
         fields = new ArrayList<>();
         scene = new Scene(Dialogs.loadFXML("add_table_dialog"), 0, 150);
@@ -236,7 +241,8 @@ public class AddTableDialog implements Dialogs {
         DataBaseField field = new DataBaseField();
         fieldCount++;
         GridPane grid = new GridPane();
-
+        TextField fieldName = new TextField();
+        ComboBox<String> boxs = new ComboBox<>();
         //Right click context menu
         grid.addEventFilter(MouseEvent.MOUSE_CLICKED, new EventHandler<MouseEvent>() {
 
@@ -249,6 +255,12 @@ public class AddTableDialog implements Dialogs {
 
                         @Override
                         public void handle(ActionEvent arg0) {
+                            hasType = true;
+                            hasFieldName = true;
+                            hasNoRepeatFieldName = true;
+                            fieldNameTextFields.remove(fieldName);
+                            comboBoxes.remove(boxs);
+                            fields.remove(field);
                             gridVBox.getChildren().remove(grid);
                         }
                         
@@ -259,9 +271,6 @@ public class AddTableDialog implements Dialogs {
                     if(contextMenu.isShowing()){
                         
                     }
-                    
-                    
-                    return;
                 }
 
             }
@@ -277,7 +286,7 @@ public class AddTableDialog implements Dialogs {
         grid.getRowConstraints().add(new RowConstraints(30));
         grid.setAlignment(Pos.CENTER);
 
-        TextField fieldName = new TextField();
+       
         fieldName.setPromptText("Field name");
         fieldName.setMaxWidth(80);
         fieldNameTextFields.add(fieldName);
@@ -296,7 +305,7 @@ public class AddTableDialog implements Dialogs {
         fieldName.setFocusTraversable(false);
 
         ObservableList<String> types = FXCollections.observableArrayList(DataBaseFieldTypes.getNames());
-        ComboBox<String> boxs = new ComboBox<>(types);
+        boxs.getItems().addAll(types);
 
         comboBoxes.add(boxs);
         boxs.setOnAction(new EventHandler<ActionEvent>() {
